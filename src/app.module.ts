@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FeedModule } from './feed/feed.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
   imports: [ConfigModule.forRoot({
@@ -19,7 +20,8 @@ import { FeedModule } from './feed/feed.module';
     synchronize: true,
     migrationsRun: false,
     logging: false,
-  }), FeedModule],
+    dropSchema: false
+  }), FeedModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })
