@@ -19,6 +19,11 @@ export class FeedService {
         return await this.feedPostRepository.find();
     }
 
+    async findPosts(take: number = 10, skip: number =0): Promise<FeedPost[]> {
+        const posts = await this.feedPostRepository.findAndCount({ take, skip });
+        return <FeedPost[]>posts;
+    }
+
     async updatePost(id: number, feedPost: FeedPost): Promise<UpdateResult> {
         return await this.feedPostRepository.update(id, feedPost);
     }
