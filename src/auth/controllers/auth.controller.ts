@@ -12,4 +12,9 @@ export class AuthController {
     async register(@Body() user: User): Promise<User> {
         return await this.authService.registerAccount(user);
     }
+    
+    @Post('login')
+    async login(@Body() user: User): Promise<{ token: string }> {
+        return await this.authService.loginAccount(user);
+    }
 }

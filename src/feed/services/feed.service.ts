@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { User } from 'src/auth/models/user.interface';
 import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { FeedPostEntity } from '../models/post.entity';
 import { FeedPost } from '../models/post.interface';
@@ -11,7 +12,9 @@ export class FeedService {
         private readonly feedPostRepository: Repository<FeedPostEntity>
     ) {}
 
-    async createPost(feedPost: FeedPost): Promise<FeedPost> {
+    async createPost(user: User, feedPost: FeedPost): Promise<FeedPost> {
+        // Connect post with user
+        feedPost.author = user;
         return await this.feedPostRepository.save(feedPost);
     }
 
