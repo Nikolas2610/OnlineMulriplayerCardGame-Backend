@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
+import { EmailService } from 'src/email/services/email.service';
 import { Repository } from 'typeorm';
 import { UsersEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
@@ -12,7 +13,8 @@ export class AuthService {
         // Import table
         @InjectRepository(UsersEntity)
         private readonly usersRepository: Repository<UsersEntity>,
-        private jwtService: JwtService
+        private jwtService: JwtService,
+        private emailService: EmailService
     ) { }
 
     // Hash the password
@@ -74,5 +76,9 @@ export class AuthService {
             const token = await this.jwtService.signAsync({ user })
             return { token }
         }
+    }
+
+    async testemail(email:  { email: string }) {
+        return await this.emailService.plainTextEmail2(email)
     }
 }

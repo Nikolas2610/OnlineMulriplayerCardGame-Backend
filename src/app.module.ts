@@ -5,24 +5,38 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FeedModule } from './feed/feed.module';
 import { AuthModule } from './auth/auth.module';
+import { EmailModule } from './email/email.module';
+import { MailerModule } from '@nestjs-modules/mailer';
 
 @Module({
-  imports: [ConfigModule.forRoot({
-    isGlobal: true
-  }), TypeOrmModule.forRoot({
-    type: 'mysql',
-    host: process.env.MYSQL_HOST,
-    port: parseInt(<string>process.env.MYSQL_PORT),
-    username: process.env.MYSQL_USERNAME,
-    password: process.env.MYSQL_PASSWORD,
-    database: process.env.MYSQL_DATABASE,
-    autoLoadEntities: true,
-    synchronize: true,
-    migrationsRun: false,
-    logging: false,
-    dropSchema: false
-  }), FeedModule, AuthModule],
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true
+    }), 
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: process.env.MYSQL_HOST,
+      port: parseInt(<string>process.env.MYSQL_PORT),
+      username: process.env.MYSQL_USERNAME,
+      password: process.env.MYSQL_PASSWORD,
+      database: process.env.MYSQL_DATABASE,
+      autoLoadEntities: true,
+      synchronize: true,
+      migrationsRun: false,
+      logging: false,
+      dropSchema: false
+    }),
+    MailerModule.forRoot({
+      transport: {
+        host: process.env.MAIL_HOST,
+        auth: {
+          user: process.env.MAIL_USER,
+          pass: process.env.MAIL_PASSWORD
+        }
+      }
+    }), 
+    FeedModule, AuthModule, EmailModule],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
