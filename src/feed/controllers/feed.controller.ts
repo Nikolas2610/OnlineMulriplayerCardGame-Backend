@@ -1,5 +1,8 @@
 import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Request } from '@nestjs/common';
+import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
+import { RolesGuard } from 'src/auth/guards/roles.guard';
+import { Role } from 'src/auth/models/role.enum';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { FeedPost } from '../models/post.interface';
 import { FeedService } from '../services/feed.service';
@@ -10,7 +13,8 @@ export class FeedController {
         private feedService: FeedService
     ) { }
 
-    @UseGuards(JwtGuard)
+    @Roles(Role.ADMIN)
+    @UseGuards(JwtGuard, RolesGuard)
     @Post()
     async create(@Body() feedPost: FeedPost, @Request() req): Promise<FeedPost> {
         return await this.feedService.createPost(req.user, feedPost);
