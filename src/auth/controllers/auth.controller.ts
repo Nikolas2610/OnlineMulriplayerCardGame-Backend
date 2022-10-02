@@ -18,8 +18,8 @@ export class AuthController {
         return await this.authService.loginAccount(user);
     }
 
-    @Post('testemail')
-    async testemail(@Body() email:  { email: string }) {
-        return await this.authService.testemail(email);
-    }
+    // @Post('testemail')
+    // async testemail(@Body() email:  { email: string }) {
+    //     return await this.authService.testemail(email);
+    // }
 }

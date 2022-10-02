@@ -2,8 +2,8 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
-import { EmailService } from 'src/email/services/email.service';
-import { Repository } from 'typeorm';
+import { EmailConfirmationService } from 'src/email/services/email-confirmation.service';
+import { Repository, UpdateResult } from 'typeorm';
 import { UsersEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
 
@@ -14,7 +14,7 @@ export class AuthService {
         @InjectRepository(UsersEntity)
         private readonly usersRepository: Repository<UsersEntity>,
         private jwtService: JwtService,
-        private emailService: EmailService
+        private emailConfirmationEmail: EmailConfirmationService
     ) { }
 
     // Hash the password
@@ -31,6 +31,8 @@ export class AuthService {
         const registerUser = await this.usersRepository.save({
             firstname, lastname, email, password: hashPassword
         })
+        // Send email confirmation
+        this.emailConfirmationEmail.sendVerificationLink(email);
         // Delete password to the return object
         delete registerUser.password;
         return registerUser;
@@ -42,6 +44,7 @@ export class AuthService {
             where: { email },
             select: {
                 firstname: true,
+                isEmailConfirmed: true,
                 lastname: true,
                 password: true,
                 email: true,
@@ -78,7 +81,8 @@ export class AuthService {
         }
     }
 
-    async testemail(email:  { email: string }) {
-        return await this.emailService.plainTextEmail2(email)
+    async activateEmail(email: string): Promise<UpdateResult> {
+        // Update Confirm email 
+        return await this.usersRepository.update({ email }, { isEmailConfirmed: true })
     }
 }
