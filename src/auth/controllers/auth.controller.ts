@@ -17,4 +17,9 @@ export class AuthController {
     async login(@Body() user: User): Promise<{ token: string }> {
         return await this.authService.loginAccount(user);
     }
+
+    @Post('testemail')
+    async testemail(@Body() email:  { email: string }) {
+        return await this.authService.testemail(email);
+    }
 }
