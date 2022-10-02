@@ -1,4 +1,5 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Put, Query, UseGuards, Request } from '@nestjs/common';
+import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { FeedPost } from '../models/post.interface';
 import { FeedService } from '../services/feed.service';
@@ -7,18 +8,19 @@ import { FeedService } from '../services/feed.service';
 export class FeedController {
     constructor(
         private feedService: FeedService
-    ) {}
+    ) { }
 
+    @UseGuards(JwtGuard)
     @Post()
-    async create(@Body() feedPost: FeedPost): Promise<FeedPost> {
-        return await this.feedService.createPost(feedPost);
+    async create(@Body() feedPost: FeedPost, @Request() req): Promise<FeedPost> {
+        return await this.feedService.createPost(req.user, feedPost);
     }
 
     @Get('pagination')
     findSelected(@Query('take') take: number = 1, @Query('skip') skip: number = 1): Promise<FeedPost[]> {
-        return this.feedService.findPosts(take,skip);
+        return this.feedService.findPosts(take, skip);
     }
-    
+
     @Get()
     findAllPosts(): Promise<FeedPost[]> {
         return this.feedService.findAllPosts()
@@ -33,7 +35,7 @@ export class FeedController {
     }
 
     @Delete(':id')
-    deletePost(@Param('id') id:number): Promise<DeleteResult> {
+    deletePost(@Param('id') id: number): Promise<DeleteResult> {
         return this.feedService.deletePost(id);
     }
 }
