@@ -6,6 +6,7 @@ import * as bcrypt from 'bcrypt';
 import { EmailConfirmationService } from 'src/email/services/email-confirmation.service';
 import { EmailService } from 'src/email/services/email.service';
 import { Repository, UpdateResult } from 'typeorm';
+import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { UsersEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
@@ -101,20 +102,17 @@ export class AuthService {
         return await this.usersRepository.update({ email }, { isEmailConfirmed: true })
     }
 
-    async forgotPassword(email: string): Promise<UpdateResult> {
+    async forgotPassword(email: ForgotPasswordDto): Promise<UpdateResult> {
         // Find the user if exists to the DB
-        const user = await this.checkUserExists(email);
+        const user = await this.checkUserExists(email.email);
         // Check if email is confirm 
         if (!user.isEmailConfirmed) {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Confirm your email first' }, HttpStatus.BAD_REQUEST);
         }
-        // Get email as string
-        const emailString = { email };
-        console.log(emailString)
         // create token 
-        const token = this.jwtService.sign(emailString, {
+        const token = this.jwtService.sign(email, {
             secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
-            expiresIn: parseInt(this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME'))
+            expiresIn: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_EXPIRATION_TIME')
         })
         // Create the url 
         const url = `${this.configService.get('FORGOT_PASSWORD_CONFIRMATION_URL')}?token=${token}`;
@@ -123,7 +121,7 @@ export class AuthService {
         // Subject email
         const subject = `Forgot Password | ${this.configService.get('APP_NAME')}`;
         // Send email
-        return this.emailService.sendMail(email, subject, text);
+        return this.emailService.sendMail(email.email, subject, text);
     }
 
     async updatePassword(user: UpdatePasswordDto): Promise<UpdateResult> {

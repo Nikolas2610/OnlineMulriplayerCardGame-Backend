@@ -5,6 +5,7 @@ import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from 'src/auth/models/role.enum';
 import { EmailConfirmationGuard } from 'src/email/guards/email-confirmation.guard';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { CreatePostDto } from '../dto/create-post.dto';
 import { FeedPost } from '../models/post.interface';
 import { FeedService } from '../services/feed.service';
 
@@ -17,7 +18,7 @@ export class FeedController {
     @Roles(Role.USER)
     @UseGuards(JwtGuard, RolesGuard, EmailConfirmationGuard)
     @Post()
-    async create(@Body() feedPost: FeedPost, @Request() req): Promise<FeedPost> {
+    async create(@Body() feedPost: CreatePostDto, @Request() req): Promise<FeedPost> {
         return await this.feedService.createPost(req.user, feedPost);
     }
 

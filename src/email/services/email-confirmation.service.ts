@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from 'src/auth/services/auth.service';
 import { UpdateResult } from 'typeorm';
+import { EmailConfirmationDto } from '../dto/email-confirmation.dto';
 import VerificationTokenPayload from '../modals/verificationTokenPayload.interface';
 import { EmailService } from './email.service';
 
@@ -35,9 +36,9 @@ export class EmailConfirmationService {
         return this.emailService.sendMail(email, subject, text);
     }
 
-    async confirmEmailVerification(token: string): Promise<UpdateResult> {
+    async confirmEmailVerification(token: EmailConfirmationDto): Promise<UpdateResult> {
         // Verify token 
-        const payload = await this.jwtService.verify(token, {
+        const payload = await this.jwtService.verify(token.token, {
             secret: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_SECRET'),
         });
         try {
@@ -58,20 +59,18 @@ export class EmailConfirmationService {
         }
     }
 
-    async confirmForgotPassword(token: string): Promise<{ token: string }> {
-        console.log(token)
+    async confirmForgotPassword(token: EmailConfirmationDto): Promise<EmailConfirmationDto> {
         // Verify token 
-        const payload = await this.jwtService.verify(token, {
+        const payload = await this.jwtService.verify(token.token, {
             secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
         });
-        console.log(payload)
         try {
             // If the token is correct add confirm email to the user
             if (typeof payload === 'object' && 'email' in payload) {
                 const newObjectPayload = { email: payload.email, verification: true };
                 const token = this.jwtService.sign(newObjectPayload, {
                     secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
-                    expiresIn: parseInt(this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME'))
+                    expiresIn: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_EXPIRATION_TIME')
                 })
                 return { token };
             }
