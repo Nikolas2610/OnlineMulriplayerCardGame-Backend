@@ -75,6 +75,10 @@ export class AuthService {
         // Check if the user is valid
         const user = await this.validateUser(email, password);
         if (user) {
+            // Check if email is confirm 
+            if (!user.isEmailConfirmed) {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Confirm your email first' }, HttpStatus.BAD_REQUEST);
+            }
             // Create jwt secret token 
             const token = await this.jwtService.signAsync({ user })
             return { token }
