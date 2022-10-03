@@ -7,6 +7,7 @@ export interface User {
     lastname?: string;
     email?: string;
     password?: string;
+    isEmailConfirmed?: boolean;
     role?: Role;
     posts?: FeedPost[];
 }
