@@ -12,4 +12,9 @@ export class EmailConfirmationController {
     async confirmEmailVerification(@Body('token') token: string):Promise<UpdateResult> {
         return await this.emailConfirmationService.confirmEmailVerification(token);
     }
+
+    @Post('confirm-forgot-password')
+    async confirmForgotPassword(@Body('token') token: string):Promise<{token: string}> {
+        return await this.emailConfirmationService.confirmForgotPassword(token);
+    }
 }

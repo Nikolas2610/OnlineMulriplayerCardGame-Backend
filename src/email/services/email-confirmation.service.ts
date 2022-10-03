@@ -16,7 +16,7 @@ export class EmailConfirmationService {
         private readonly authService: AuthService
     ) { }
 
-    public sendVerificationLink(email: string) {
+    public sendVerificationLink(email: string): Promise<EmailConfirmationService> {
         // Get the email from request
         const payload: VerificationTokenPayload = { email };
         // Create jwt token with user email
@@ -30,7 +30,7 @@ export class EmailConfirmationService {
         const text = `Welcome to the ${this.configService.get('APP_NAME')}. \n\nTo confirm the email address, click here: \n${url}
         \n\n\n\nToken:${token}`;
         // Subject email
-        const subject = 'Email Confirmation';
+        const subject = `Email Confirmation | ${this.configService.get('APP_NAME')}`;
         // Send email
         return this.emailService.sendMail(email, subject, text);
     }
@@ -58,4 +58,31 @@ export class EmailConfirmationService {
         }
     }
 
+    async confirmForgotPassword(token: string): Promise<{ token: string }> {
+        console.log(token)
+        // Verify token 
+        const payload = await this.jwtService.verify(token, {
+            secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+        });
+        console.log(payload)
+        try {
+            // If the token is correct add confirm email to the user
+            if (typeof payload === 'object' && 'email' in payload) {
+                const newObjectPayload = { email: payload.email, verification: true };
+                const token = this.jwtService.sign(newObjectPayload, {
+                    secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+                    expiresIn: parseInt(this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME'))
+                })
+                return { token };
+            }
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad Request' }, HttpStatus.BAD_REQUEST);
+        } catch (error) {
+            // Check If token has expire 
+            if (error?.name === 'TokenExpiredError') {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Forgot password token expired' }, HttpStatus.BAD_REQUEST);
+            }
+            // Bad request
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
+        }
+    }
 }

@@ -1,9 +1,12 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
 import * as bcrypt from 'bcrypt';
 import { EmailConfirmationService } from 'src/email/services/email-confirmation.service';
+import { EmailService } from 'src/email/services/email.service';
 import { Repository, UpdateResult } from 'typeorm';
+import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { UsersEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
 
@@ -14,7 +17,9 @@ export class AuthService {
         @InjectRepository(UsersEntity)
         private readonly usersRepository: Repository<UsersEntity>,
         private jwtService: JwtService,
-        private emailConfirmationEmail: EmailConfirmationService
+        private emailConfirmationEmail: EmailConfirmationService,
+        private readonly configService: ConfigService,
+        private readonly emailService: EmailService
     ) { }
 
     // Hash the password
@@ -38,7 +43,7 @@ export class AuthService {
         return registerUser;
     }
 
-    async validateUser(email: string, password: string): Promise<User> {
+    async checkUserExists(email: string): Promise<User> {
         // Find user by email
         const user = await this.usersRepository.findOne({
             where: { email },
@@ -56,6 +61,12 @@ export class AuthService {
         if (!user) {
             throw new HttpException({ status: HttpStatus.NOT_FOUND, error: 'The user does not exists' }, HttpStatus.NOT_FOUND);
         }
+        return user
+    }
+
+    async validateUser(email: string, password: string): Promise<User> {
+        // Find user by email
+        const user = await this.checkUserExists(email)
         // Check if the is the correct password
         const isValidPassword = await bcrypt.compare(password, user.password);
         if (isValidPassword) {
@@ -88,5 +99,46 @@ export class AuthService {
     async activateEmail(email: string): Promise<UpdateResult> {
         // Update Confirm email 
         return await this.usersRepository.update({ email }, { isEmailConfirmed: true })
+    }
+
+    async forgotPassword(email: string): Promise<UpdateResult> {
+        // Find the user if exists to the DB
+        const user = await this.checkUserExists(email);
+        // Check if email is confirm 
+        if (!user.isEmailConfirmed) {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Confirm your email first' }, HttpStatus.BAD_REQUEST);
+        }
+        // Get email as string
+        const emailString = { email };
+        console.log(emailString)
+        // create token 
+        const token = this.jwtService.sign(emailString, {
+            secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+            expiresIn: parseInt(this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME'))
+        })
+        // Create the url 
+        const url = `${this.configService.get('FORGOT_PASSWORD_CONFIRMATION_URL')}?token=${token}`;
+        // Token field add only for the tests
+        const text = `To change your password click the above link: \n\n${url}\n\n\n\nToken:${token}\n\n\n\n The link expires in one hour.`;
+        // Subject email
+        const subject = `Forgot Password | ${this.configService.get('APP_NAME')}`;
+        // Send email
+        return this.emailService.sendMail(email, subject, text);
+    }
+
+    async updatePassword(user: UpdatePasswordDto): Promise<UpdateResult> {
+        const { token, password } = user;
+        // Compare token
+        const payload = await this.jwtService.verify(token, {
+            secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+        });
+        // Check if the payload come from the confirm-forgot-password controller
+        if (!payload.verification) {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Authorized problem with token' }, HttpStatus.BAD_REQUEST);
+        }
+        // Hash the password
+        const hashPassword = await this.hashPassword(password);
+        // Update the password of the user
+        return await this.usersRepository.update({ email: payload.email }, { password: hashPassword })
     }
 }
