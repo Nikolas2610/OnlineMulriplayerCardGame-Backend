@@ -8,10 +8,7 @@ export class UsersEntity {
     id: number;
 
     @Column()
-    firstname: string;
-    
-    @Column()
-    lastname: string;
+    username: string;
     
     @Column({ unique: true })
     email: string;

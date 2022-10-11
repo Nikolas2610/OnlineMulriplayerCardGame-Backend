@@ -30,12 +30,12 @@ export class AuthService {
 
     // Register Account
     async registerAccount(user: User): Promise<User> {
-        const { firstname, lastname, email, password } = user;
+        const { username, email, password } = user;
         // Hash the password
         const hashPassword = await this.hashPassword(password);
         // Save to database
         const registerUser = await this.usersRepository.save({
-            firstname, lastname, email, password: hashPassword
+            username, email, password: hashPassword
         })
         // Send email confirmation
         this.emailConfirmationEmail.sendVerificationLink(email);
@@ -49,9 +49,8 @@ export class AuthService {
         const user = await this.usersRepository.findOne({
             where: { email },
             select: {
-                firstname: true,
+                username: true,
                 isEmailConfirmed: true,
-                lastname: true,
                 password: true,
                 email: true,
                 id: true,
