@@ -83,7 +83,7 @@ export class AuthService {
     }
 
     // Login account by email
-    async loginAccount(userBeforeRequest: UserLoginDto): Promise<{ token: string }> {
+    async loginAccount(userBeforeRequest: UserLoginDto): Promise<{ token: string, username: string }> {
         // Get email and password from the request
         const { email, password, rememberMe } = userBeforeRequest;
         // Check if the user is valid
@@ -93,13 +93,19 @@ export class AuthService {
             if (!user.isEmailConfirmed) {
                 throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
             }
-            // TODO: Bigger jwt token
+            // Remember me -> true: 365 days else false: 1 hour 
+            let expiresIn: string | number;
             if (rememberMe) {
-                // TODO
+                expiresIn = this.configService.get('JWT_EXPIRATION_LONG_TIME')
+            } else {
+                expiresIn = this.configService.get('JWT_EXPIRATION_TIME')
             }
             // Create jwt secret token 
-            const token = await this.jwtService.signAsync({ user })
-            return { token }
+            const token = await this.jwtService.signAsync({ user }, { expiresIn })
+            // Export username
+            const { username } = user;
+
+            return { token, username }
         }
     }
 
