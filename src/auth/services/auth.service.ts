@@ -8,6 +8,7 @@ import { EmailService } from 'src/email/services/email.service';
 import { Repository, UpdateResult } from 'typeorm';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
+import { UserLoginDto } from '../dto/user-login.dto';
 import { UsersEntity } from '../models/user.entity';
 import { User } from '../models/user.interface';
 
@@ -36,6 +37,8 @@ export class AuthService {
         // Save to database
         const registerUser = await this.usersRepository.save({
             username, email, password: hashPassword
+        }).catch(() => {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this email already exists' }, HttpStatus.BAD_REQUEST);
         })
         // Send email confirmation
         this.emailConfirmationEmail.sendVerificationLink(email);
@@ -59,7 +62,7 @@ export class AuthService {
         })
         // Return error for the email if has
         if (!user) {
-            throw new HttpException({ status: HttpStatus.NOT_FOUND, error: 'The user does not exists' }, HttpStatus.NOT_FOUND);
+            throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'The email does not exist' }, HttpStatus.UNAUTHORIZED);
         }
         return user
     }
@@ -75,24 +78,34 @@ export class AuthService {
             return user;
         } else {
             // Throw error for the wrong password
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Wrong Password' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Wrong Password' }, HttpStatus.UNAUTHORIZED);
         }
     }
 
     // Login account by email
-    async loginAccount(userBeforeRequest: User): Promise<{ token: string }> {
+    async loginAccount(userBeforeRequest: UserLoginDto): Promise<{ token: string, username: string }> {
         // Get email and password from the request
-        const { email, password } = userBeforeRequest;
+        const { email, password, rememberMe } = userBeforeRequest;
         // Check if the user is valid
         const user = await this.validateUser(email, password);
         if (user) {
             // Check if email is confirm 
             if (!user.isEmailConfirmed) {
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Confirm your email first' }, HttpStatus.BAD_REQUEST);
+                throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
+            }
+            // Remember me -> true: 365 days else false: 1 hour 
+            let expiresIn: string | number;
+            if (rememberMe) {
+                expiresIn = this.configService.get('JWT_EXPIRATION_LONG_TIME')
+            } else {
+                expiresIn = this.configService.get('JWT_EXPIRATION_TIME')
             }
             // Create jwt secret token 
-            const token = await this.jwtService.signAsync({ user })
-            return { token }
+            const token = await this.jwtService.signAsync({ user }, { expiresIn })
+            // Export username
+            const { username } = user;
+
+            return { token, username }
         }
     }
 
