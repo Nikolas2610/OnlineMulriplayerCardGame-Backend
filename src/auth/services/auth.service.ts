@@ -41,7 +41,12 @@ export class AuthService {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this email already exists' }, HttpStatus.BAD_REQUEST);
         })
         // Send email confirmation
-        this.emailConfirmationEmail.sendVerificationLink(email);
+        const message = await this.emailConfirmationEmail.sendVerificationLink(email, username);
+        // If Mail has not send delete user and send server error
+        if (message === 'email server error') {
+            this.usersRepository.delete(registerUser);
+            throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, error: 'Internal Server Error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         // Delete password to the return object
         delete registerUser.password;
         return registerUser;

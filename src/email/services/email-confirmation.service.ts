@@ -17,45 +17,52 @@ export class EmailConfirmationService {
         private readonly authService: AuthService
     ) { }
 
-    public sendVerificationLink(email: string): Promise<EmailConfirmationService> {
+    async sendVerificationLink(email: string, username: string): Promise<string> {
         // Get the email from request
         const payload: VerificationTokenPayload = { email };
         // Create jwt token with user email
         const token = this.jwtService.sign(payload, {
             secret: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_SECRET'),
-            expiresIn: parseInt(this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME'))
+            expiresIn: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME')
         })
         // Get the app url and add the token | ***Bug from SENDGRID the url shows but not the href | ***URL decide from the Frontend
-        const url = `${this.configService.get('EMAIL_CONFIRMATION_URL')}/email-confirmation?token=${token}`;
-        // Token field add only for the tests
-        const text = `Welcome to the ${this.configService.get('APP_NAME')}. \n\nTo confirm the email address, click here: \n${url}
-        \n\n\n\nToken:${token}`;
+        const url = `${this.configService.get('FRONTEND_URL')}${this.configService.get('EMAIL_CONFIRMATION_URL')}?token=${token}`;
         // Subject email
         const subject = `Email Confirmation | ${this.configService.get('APP_NAME')}`;
         // Send email
-        return this.emailService.sendMail(email, subject, text);
+        const message = await this.emailService.sendEmailAccountConfirmation(email, subject, url, username);
+        return message;
     }
 
     async confirmEmailVerification(token: EmailConfirmationDto): Promise<UpdateResult> {
         // Verify token 
-        const payload = await this.jwtService.verify(token.token, {
-            secret: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_SECRET'),
-        });
         try {
+            const payload = await this.jwtService.verify(token.token, {
+                secret: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_SECRET'),
+            });
             // If the token is correct add confirm email to the user
             if (typeof payload === 'object' && 'email' in payload) {
                 return await this.authService.activateEmail(payload.email);
             }
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad Request' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad Request' }, HttpStatus.BAD_REQUEST);
         } catch (error) {
             // If token has expire resend email verification link and return message to the user
             if (error?.name === 'TokenExpiredError') {
-                // Resend the email verification link before return the error
-                this.sendVerificationLink(payload.email);
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Email confirmation token expired' }, HttpStatus.BAD_REQUEST);
+                // Decode jwt token
+                const payload: string | any = this.jwtService.decode(token.token);
+                // Check email is exists to database
+                const user = await this.authService.checkUserExists(payload.email);
+                // Send email
+                const message = await this.sendVerificationLink(user.email, user.username);
+                // Send status message to the user
+                if (message === 'email server error') {
+                    throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Internal server error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+                } else {
+                    throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Email confirmation token expired' }, HttpStatus.BAD_REQUEST);
+                }
             }
             // Bad request
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
         }
     }
 

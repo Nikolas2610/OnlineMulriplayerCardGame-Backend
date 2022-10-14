@@ -7,6 +7,9 @@ import { FeedModule } from './feed/feed.module';
 import { AuthModule } from './auth/auth.module';
 import { EmailModule } from './email/email.module';
 import { MailerModule } from '@nestjs-modules/mailer';
+import { join } from 'path';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
+console.log(join(__dirname, 'email-templates'));
 
 @Module({
   imports: [
@@ -33,6 +36,10 @@ import { MailerModule } from '@nestjs-modules/mailer';
           user: process.env.MAIL_USER,
           pass: process.env.MAIL_PASSWORD
         }
+      },
+      template: {
+        dir: join(__dirname, 'email-templates'),
+        adapter: new HandlebarsAdapter()
       }
     }), 
     FeedModule, AuthModule, EmailModule],
