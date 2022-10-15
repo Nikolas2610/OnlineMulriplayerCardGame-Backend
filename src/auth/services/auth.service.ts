@@ -41,7 +41,12 @@ export class AuthService {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this email already exists' }, HttpStatus.BAD_REQUEST);
         })
         // Send email confirmation
-        this.emailConfirmationEmail.sendVerificationLink(email);
+        const message = await this.emailConfirmationEmail.sendVerificationLink(email, username);
+        // If Mail has not send delete user and send server error
+        if (message === 'email server error') {
+            this.usersRepository.delete(registerUser);
+            throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, error: 'Internal Server Error' }, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
         // Delete password to the return object
         delete registerUser.password;
         return registerUser;
@@ -114,7 +119,7 @@ export class AuthService {
         return await this.usersRepository.update({ email }, { isEmailConfirmed: true })
     }
 
-    async forgotPassword(email: ForgotPasswordDto): Promise<UpdateResult> {
+    async forgotPassword(email: ForgotPasswordDto): Promise<String> {
         // Find the user if exists to the DB
         const user = await this.checkUserExists(email.email);
         // Check if email is confirm 
@@ -127,28 +132,36 @@ export class AuthService {
             expiresIn: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_EXPIRATION_TIME')
         })
         // Create the url 
-        const url = `${this.configService.get('FORGOT_PASSWORD_CONFIRMATION_URL')}?token=${token}`;
-        // Token field add only for the tests
-        const text = `To change your password click the above link: \n\n${url}\n\n\n\nToken:${token}\n\n\n\n The link expires in one hour.`;
+        const url = `${this.configService.get('FRONTEND_URL')}${this.configService.get('FORGOT_PASSWORD_CONFIRMATION_URL')}?token=${token}`;
         // Subject email
         const subject = `Forgot Password | ${this.configService.get('APP_NAME')}`;
         // Send email
-        return this.emailService.sendMail(email.email, subject, text);
+        const message = this.emailService.sendForgotPasswordConfirmation(email.email, subject, url)
+        return message;
     }
 
     async updatePassword(user: UpdatePasswordDto): Promise<UpdateResult> {
         const { token, password } = user;
-        // Compare token
-        const payload = await this.jwtService.verify(token, {
-            secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
-        });
-        // Check if the payload come from the confirm-forgot-password controller
-        if (!payload.verification) {
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Authorized problem with token' }, HttpStatus.BAD_REQUEST);
+        try {
+            // Compare token
+            const payload = await this.jwtService.verify(token, {
+                secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+            });
+            // Check if the payload come from the confirm-forgot-password controller
+            if (!payload.verification) {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Authorized problem with token' }, HttpStatus.BAD_REQUEST);
+            }
+            // Hash the password
+            const hashPassword = await this.hashPassword(password);
+            // Update the password of the user
+            return await this.usersRepository.update({ email: payload.email }, { password: hashPassword })
+        } catch (error) {
+            // Check If token has expire 
+            if (error?.name === 'TokenExpiredError') {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Forgot password token expired' }, HttpStatus.BAD_REQUEST);
+            }
+            // Bad request
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
         }
-        // Hash the password
-        const hashPassword = await this.hashPassword(password);
-        // Update the password of the user
-        return await this.usersRepository.update({ email: payload.email }, { password: hashPassword })
     }
 }

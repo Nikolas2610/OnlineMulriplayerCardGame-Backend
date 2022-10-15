@@ -17,13 +17,75 @@ export class EmailService {
         });
     }
 
+    async sendEmailAccountConfirmation(to: string, subject: string, url: string, username: string): Promise<string> {
+        let message: string = '';
+        try {
+            await this.mailService.sendMail({
+                to,
+                from: this.configService.get('APP_EMAIL'),
+                subject,
+                template: 'account-verify',
+                context: {
+                    url: url,
+                    username: username
+                }
+            });
+            message = 'email sent';
+        } catch (error) {
+            message = 'email server error';
+        }
+        return message
+    }
+
+    async sendForgotPasswordConfirmation(to: string, subject: string, url: string): Promise<string> {
+        let message: string = '';
+        try {
+            await this.mailService.sendMail({
+                to,
+                from: this.configService.get('APP_EMAIL'),
+                subject,
+                template: 'forgot-password',
+                context: {
+                    url: url
+                }
+            });
+            message = 'email sent';
+        } catch (error) {
+            message = 'email server error';
+        }
+        return message
+    }
+
+    // For Testing
     async plainTextEmail(toemail: string) {
+        console.log(toemail)
         return await this.mailService.sendMail({
             to: toemail,
-            from: 'psillovits@gmail.com',
+            from: 'psillovits1@gmail.com',
             subject: 'Simple Plain Text',
             text: `Welcome to the Online Multiplayer Card Game`
         });
+    }
+
+    // For Testing
+    async plainHTMLEmail(payload) {
+        let message = ''
+        try {
+            const response = await this.mailService.sendMail({
+                to: payload.toemail,
+                from: 'psillovits11@gmail.com',
+                subject: 'Simple Plain HTML mail',
+                template: 'forgot-password',
+                context: {
+                    url: payload.url
+                }
+            });
+            message = 'success'
+        } catch (error) {
+            console.log(error.name)
+            message = 'error'
+        }
+        return message
     }
 
     async plainTextEmail2(mail: { email: string }) {
