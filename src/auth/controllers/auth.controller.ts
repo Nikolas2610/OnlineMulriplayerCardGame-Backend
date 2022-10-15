@@ -24,7 +24,7 @@ export class AuthController {
     }
 
     @Post('forgot-password')
-    async forgotPassword(@Body() email: ForgotPasswordDto): Promise<UpdateResult> {
+    async forgotPassword(@Body() email: ForgotPasswordDto): Promise<String> {
         return await this.authService.forgotPassword(email);
     }
 

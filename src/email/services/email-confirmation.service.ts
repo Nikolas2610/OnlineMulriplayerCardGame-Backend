@@ -67,11 +67,11 @@ export class EmailConfirmationService {
     }
 
     async confirmForgotPassword(token: EmailConfirmationDto): Promise<EmailConfirmationDto> {
-        // Verify token 
-        const payload = await this.jwtService.verify(token.token, {
-            secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
-        });
         try {
+            // Verify token 
+            const payload = await this.jwtService.verify(token.token, {
+                secret: this.configService.get('JWT_FORGOT_PASSWORD_TOKEN_SECRET'),
+            });
             // If the token is correct add confirm email to the user
             if (typeof payload === 'object' && 'email' in payload) {
                 const newObjectPayload = { email: payload.email, verification: true };
@@ -81,14 +81,14 @@ export class EmailConfirmationService {
                 })
                 return { token };
             }
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad Request' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad Request' }, HttpStatus.BAD_REQUEST);
         } catch (error) {
             // Check If token has expire 
             if (error?.name === 'TokenExpiredError') {
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Forgot password token expired' }, HttpStatus.BAD_REQUEST);
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Forgot password token expired' }, HttpStatus.BAD_REQUEST);
             }
             // Bad request
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
         }
     }
 }

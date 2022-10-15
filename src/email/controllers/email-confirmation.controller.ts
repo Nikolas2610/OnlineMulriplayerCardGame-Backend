@@ -10,7 +10,7 @@ export class EmailConfirmationController {
     ) { }
 
     @Post('confirm')
-    async confirmEmailVerification(@Body() token: EmailConfirmationDto): Promise<any> {
+    async confirmEmailVerification(@Body() token: EmailConfirmationDto): Promise<UpdateResult> {
         return await this.emailConfirmationService.confirmEmailVerification(token);
     }
 

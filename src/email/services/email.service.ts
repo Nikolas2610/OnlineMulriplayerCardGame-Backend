@@ -37,6 +37,25 @@ export class EmailService {
         return message
     }
 
+    async sendForgotPasswordConfirmation(to: string, subject: string, url: string): Promise<string> {
+        let message: string = '';
+        try {
+            await this.mailService.sendMail({
+                to,
+                from: this.configService.get('APP_EMAIL'),
+                subject,
+                template: 'forgot-password',
+                context: {
+                    url: url
+                }
+            });
+            message = 'email sent';
+        } catch (error) {
+            message = 'email server error';
+        }
+        return message
+    }
+
     // For Testing
     async plainTextEmail(toemail: string) {
         console.log(toemail)
