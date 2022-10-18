@@ -14,7 +14,8 @@ console.log(join(__dirname, 'email-templates'));
 @Module({
   imports: [
     ConfigModule.forRoot({
-      isGlobal: true
+      isGlobal: true,
+      envFilePath: `.env.${process.env.NODE_ENV}`
     }), 
     TypeOrmModule.forRoot({
       type: 'mysql',
