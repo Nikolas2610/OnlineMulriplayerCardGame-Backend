@@ -44,7 +44,8 @@ export class AuthService {
         const message = await this.emailConfirmationEmail.sendVerificationLink(email, username);
         // If Mail has not send delete user and send server error
         if (message === 'email server error') {
-            this.usersRepository.delete(registerUser);
+            // TODO: Error when add relation with hand_Start_cards and deck
+            // this.usersRepository.delete(registerUser);
             throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, error: 'Internal Server Error' }, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         // Delete password to the return object
