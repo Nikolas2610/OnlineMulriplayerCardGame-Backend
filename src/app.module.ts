@@ -9,6 +9,13 @@ import { EmailModule } from './email/email.module';
 import { MailerModule } from '@nestjs-modules/mailer';
 import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
+import { DeckModule } from './deck/deck.module';
+import { CardModule } from './card/card.module';
+import { HandStartCardsModule } from './hand_start_cards/hand_start_cards.module';
+import { GameModule } from './game/game.module';
+import { RoleModule } from './role/role.module';
+import { TableModule } from './table/table.module';
+import { RankModule } from './rank/rank.module';
 console.log(join(__dirname, 'email-templates'));
 
 @Module({
@@ -16,7 +23,7 @@ console.log(join(__dirname, 'email-templates'));
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: `.env.${process.env.NODE_ENV}`
-    }), 
+    }),
     TypeOrmModule.forRoot({
       type: 'mysql',
       host: process.env.MYSQL_HOST,
@@ -42,8 +49,8 @@ console.log(join(__dirname, 'email-templates'));
         dir: join(__dirname, 'email-templates'),
         adapter: new HandlebarsAdapter()
       }
-    }), 
-    FeedModule, AuthModule, EmailModule],
+    }),
+    FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule],
   controllers: [AppController],
   providers: [AppService],
 })
