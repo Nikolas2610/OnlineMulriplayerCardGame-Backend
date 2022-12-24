@@ -1,9 +1,10 @@
 import { UsersEntity } from "src/auth/models/user.entity";
-import { DecksEntity } from "src/deck/models/deck.entity";
-import { HandStartCardsEntity } from "src/hand_start_cards/models/hand_start_cards.entity";
-import { RolesEntity } from "src/role/models/role.entity";
-import { TablesEntity } from "src/table/models/table.entity";
+import { DecksEntity } from "src/entities/db/deck.entity";
+import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
+import { RolesEntity } from "src/entities/db/role.entity";
+import { TablesEntity } from "src/entities/db/table.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { StatusEntity } from "./status.entity";
 
 @Entity('game')
 export class GamesEntity {
@@ -13,7 +14,7 @@ export class GamesEntity {
     @Column()
     name: string;
 
-    @Column()
+    @Column({ length: 1000 })
     description: string;
 
     @Column()
@@ -58,4 +59,7 @@ export class GamesEntity {
 
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_id)
     table_id: TablesEntity
+
+    @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game_id)
+    status_id: StatusEntity
 }

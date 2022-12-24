@@ -1,7 +1,7 @@
 import { UsersEntity } from "src/auth/models/user.entity";
-import { CardsEntity } from "src/card/models/card.entiry";
-import { GamesEntity } from "src/game/models/game.entity";
-import { HandStartCardsEntity } from "src/hand_start_cards/models/hand_start_cards.entity";
+import { CardsEntity } from "src/entities/db/card.entity";
+import { GamesEntity } from "src/entities/db/game.entity";
+import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable, OneToMany, JoinColumn } from "typeorm";
 
 @Entity('deck')

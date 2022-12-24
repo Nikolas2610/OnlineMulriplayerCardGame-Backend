@@ -1,6 +1,6 @@
-import { DecksEntity } from "src/deck/models/deck.entity";
-import { GamesEntity } from "src/game/models/game.entity";
-import { RolesEntity } from "src/role/models/role.entity";
+import { DecksEntity } from "src/entities/db/deck.entity";
+import { GamesEntity } from "src/entities/db/game.entity";
+import { RolesEntity } from "src/entities/db/role.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('hand_start_cards')

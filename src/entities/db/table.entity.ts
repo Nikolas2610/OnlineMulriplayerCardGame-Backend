@@ -1,8 +1,9 @@
 import { UsersEntity } from "src/auth/models/user.entity";
-import { GamesEntity } from "src/game/models/game.entity";
-import { RankEntity } from "src/rank/models/rank.entity";
+import { GamesEntity } from "src/entities/db/game.entity";
+import { RankEntity } from "src/entities/db/rank.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TablesDecksEntity } from "./table_deck.entity";
+import { TableUsersEntity } from "./table_users.entity";
 
 @Entity('table')
 export class TablesEntity {
@@ -37,4 +38,7 @@ export class TablesEntity {
 
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.table_id)
     rank_id: RankEntity
+
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table)
+    table_users_id: TableUsersEntity
 }

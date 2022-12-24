@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { RankEntity } from './models/rank.entity';
+import { EntitiesModule } from 'src/entities/entities.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([RankEntity])]
+    imports: [EntitiesModule]
 })
 export class RankModule { }
