@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
 import { GamesEntity } from "../db/game.entity";
 import { faker } from '@faker-js/faker';
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { Repository } from "typeorm";
 import { DecksEntity } from "../db/deck.entity";
 

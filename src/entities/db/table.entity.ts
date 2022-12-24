@@ -1,4 +1,4 @@
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { GamesEntity } from "src/entities/db/game.entity";
 import { RankEntity } from "src/entities/db/rank.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";

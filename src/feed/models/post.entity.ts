@@ -1,4 +1,4 @@
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { Column, CreateDateColumn, Entity, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('feed_post')

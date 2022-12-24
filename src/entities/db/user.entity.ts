@@ -4,7 +4,7 @@ import { GamesEntity } from "src/entities/db/game.entity";
 import { TablesDecksEntity } from "src/entities/db/table_deck.entity";
 import { TablesEntity } from "src/entities/db/table.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
-import { Role } from "./role.enum";
+import { Role } from "../../auth/models/role.enum";
 import { RankEntity } from "src/entities/db/rank.entity";
 import { TableUsersEntity } from "src/entities/db/table_users.entity";
 
@@ -24,6 +24,9 @@ export class UsersEntity {
 
     @Column({ default: false })
     isEmailConfirmed: boolean;
+
+    @Column({ nullable: true })
+    refresh_token: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;

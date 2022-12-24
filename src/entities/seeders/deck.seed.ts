@@ -1,5 +1,5 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { CardsEntity } from "src/entities/db/card.entity";
 import { DecksEntity } from "src/entities/db/deck.entity";
 import { Repository } from "typeorm";

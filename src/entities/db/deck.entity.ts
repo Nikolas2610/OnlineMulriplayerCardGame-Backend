@@ -1,4 +1,4 @@
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { CardsEntity } from "src/entities/db/card.entity";
 import { GamesEntity } from "src/entities/db/game.entity";
 import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
