@@ -16,6 +16,7 @@ import { GameModule } from './game/game.module';
 import { RoleModule } from './role/role.module';
 import { TableModule } from './table/table.module';
 import { RankModule } from './rank/rank.module';
+import { EntitiesModule } from './entities/entities.module';
 console.log(join(__dirname, 'email-templates'));
 
 @Module({
@@ -50,8 +51,8 @@ console.log(join(__dirname, 'email-templates'));
         adapter: new HandlebarsAdapter()
       }
     }),
-    FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule],
+    FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService]
 })
 export class AppModule { }

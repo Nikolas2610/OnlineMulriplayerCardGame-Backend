@@ -1,5 +1,5 @@
-import { GamesEntity } from "src/game/models/game.entity";
-import { HandStartCardsEntity } from "src/hand_start_cards/models/hand_start_cards.entity";
+import { GamesEntity } from "src/entities/db/game.entity";
+import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('role')
@@ -13,7 +13,7 @@ export class RolesEntity {
     @Column()
     max_players: number;
 
-    @Column()
+    @Column({ length: 1000 })
     description: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })

@@ -1,4 +1,8 @@
 import { Injectable } from '@nestjs/common';
 
 @Injectable()
-export class DeckService {}
+export class DeckService {
+    constructor(
+    ) {
+    }
+}

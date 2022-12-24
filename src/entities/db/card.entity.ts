@@ -1,5 +1,5 @@
-import { DecksEntity } from "src/deck/models/deck.entity";
-import { TablesCardsEntity } from "src/table/models/table_cards.entity";
+import { DecksEntity } from "src/entities/db/deck.entity";
+import { TablesCardsEntity } from "src/entities/db/table_cards.entity";
 import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 

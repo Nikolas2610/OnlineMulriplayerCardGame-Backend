@@ -1,11 +1,12 @@
-import { DecksEntity } from "src/deck/models/deck.entity";
+import { DecksEntity } from "src/entities/db/deck.entity";
 import { FeedPostEntity } from "src/feed/models/post.entity";
-import { GamesEntity } from "src/game/models/game.entity";
-import { TablesDecksEntity } from "src/table/models/table_deck.entity";
-import { TablesEntity } from "src/table/models/table.entity";
+import { GamesEntity } from "src/entities/db/game.entity";
+import { TablesDecksEntity } from "src/entities/db/table_deck.entity";
+import { TablesEntity } from "src/entities/db/table.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Role } from "./role.enum";
-import { RankEntity } from "src/rank/models/rank.entity";
+import { RankEntity } from "src/entities/db/rank.entity";
+import { TableUsersEntity } from "src/entities/db/table_users.entity";
 
 @Entity('users')
 export class UsersEntity {
@@ -50,4 +51,7 @@ export class UsersEntity {
 
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
     rank_id: RankEntity
+
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
+    table_users_id: TableUsersEntity
 }

@@ -1,4 +1,4 @@
-import { CardsEntity } from "src/card/models/card.entiry";
+import { CardsEntity } from "src/entities/db/card.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TablesDecksEntity } from "./table_deck.entity";
 

@@ -1,8 +1,7 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { HandStartCardsEntity } from './models/hand_start_cards.entity';
+import { EntitiesModule } from 'src/entities/entities.module';
 
 @Module({
-    imports: [TypeOrmModule.forFeature([HandStartCardsEntity])]
+    imports: [EntitiesModule]
 })
 export class HandStartCardsModule { }

@@ -1,5 +1,5 @@
 import { UsersEntity } from "src/auth/models/user.entity";
-import { TablesEntity } from "src/table/models/table.entity";
+import { TablesEntity } from "src/entities/db/table.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
 @Entity('rank')
