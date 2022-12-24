@@ -2,7 +2,7 @@ import { forwardRef, Module } from '@nestjs/common';
 import { AuthService } from './services/auth.service';
 import { AuthController } from './controllers/auth.controller';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersEntity } from './models/user.entity';
+import { UsersEntity } from '../entities/db/user.entity';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtGuard } from './guards/jwt.guard';
 import { JwtStrategy } from './guards/jwt.strategy';
@@ -19,7 +19,7 @@ import { EmailService } from 'src/email/services/email.service';
         signOptions: { expiresIn: '3600s' }
       })
     }),
-    TypeOrmModule.forFeature([UsersEntity]),forwardRef(() => EmailModule)],
+    TypeOrmModule.forFeature([UsersEntity]), forwardRef(() => EmailModule)],
   providers: [AuthService, JwtGuard, JwtStrategy, RolesGuard, EmailConfirmationService, EmailService],
   controllers: [AuthController],
   exports: [AuthService]
