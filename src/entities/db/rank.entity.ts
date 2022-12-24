@@ -1,4 +1,4 @@
-import { UsersEntity } from "src/auth/models/user.entity";
+import { UsersEntity } from "src/entities/db/user.entity";
 import { TablesEntity } from "src/entities/db/table.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 

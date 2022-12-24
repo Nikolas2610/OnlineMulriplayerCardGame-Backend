@@ -1,6 +1,6 @@
-import { Global, Module } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { UsersEntity } from 'src/auth/models/user.entity';
+import { UsersEntity } from 'src/entities/db/user.entity';
 import { CardsEntity } from './db/card.entity';
 import { DecksEntity } from './db/deck.entity';
 import { GamesEntity } from './db/game.entity';
@@ -30,7 +30,8 @@ import { RoleSeeder } from './seeders/role.seed';
         RolesEntity,
         UsersEntity,
         TableUsersEntity,
-        StatusEntity
+        StatusEntity,
+        UsersEntity
     ])],
     providers: [SeedDeck, CardSeeder, GameSeeder, RoleSeeder],
     exports: [TypeOrmModule]
