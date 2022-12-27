@@ -22,11 +22,11 @@ export class UsersEntity {
     @Column({ select: false })
     password: string;
 
-    @Column({ default: false })
-    isEmailConfirmed: boolean;
-
     @Column({ nullable: true })
     refresh_token: string;
+
+    @Column({ default: false })
+    isEmailConfirmed: boolean;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;

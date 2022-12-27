@@ -58,7 +58,6 @@ export class EmailService {
 
     // For Testing
     async plainTextEmail(toemail: string) {
-        console.log(toemail)
         return await this.mailService.sendMail({
             to: toemail,
             from: 'psillovits1@gmail.com',
@@ -82,7 +81,6 @@ export class EmailService {
             });
             message = 'success'
         } catch (error) {
-            console.log(error.name)
             message = 'error'
         }
         return message
