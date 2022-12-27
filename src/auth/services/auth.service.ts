@@ -102,30 +102,17 @@ export class AuthService {
             if (!user.isEmailConfirmed) {
                 throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
             }
-            delete user.isEmailConfirmed;
-            //          Create hash refresh token to save to database
-            const uuid = v4();
-            const query = await this.saveRefreshToken(uuid, user.id);
-            if (query.affected) {
-                // Create refresh token 
-                const refresh_token = await this.jwtService.signAsync({ refresh_token: uuid }, { expiresIn: '7d' });
+            const token = await this.jwtService.signAsync({ user }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
 
-                // Create jwt secret token 
-                const token = await this.jwtService.signAsync({ user, token: refresh_token }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
-
-                return { token }
-            } else {
-                // User not update with refresh token
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'The user does not exists' }, HttpStatus.BAD_REQUEST);
-            }
-
+            return { token }
         }
     }
 
-    async saveRefreshToken(refresh_token: string, userId: number) {
-        const hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
-        return this.usersRepository.update(userId, { refresh_token: hash });
-    }
+    // TODO: remove if not needed
+    // async saveRefreshToken(refresh_token: string, userId: number) {
+    //     const hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
+    //     return this.usersRepository.update(userId, { refresh_token: hash });
+    // }
 
     async activateEmail(email: string): Promise<UpdateResult> {
         // Update Confirm email 
