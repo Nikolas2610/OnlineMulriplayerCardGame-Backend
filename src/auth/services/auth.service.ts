@@ -14,6 +14,7 @@ import { User } from '../models/user.interface';
 import { v4 } from 'uuid';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import { UserRegisterDto } from '../dto/user-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +34,7 @@ export class AuthService {
     }
 
     // Register Account
-    async registerAccount(user: User): Promise<User> {
+    async registerAccount(user: UserRegisterDto): Promise<User> {
         const { username, email, password } = user;
         // Hash the password
         const hashPassword = await this.hashPassword(password);
@@ -63,6 +64,7 @@ export class AuthService {
             select: {
                 username: true,
                 isEmailConfirmed: true,
+                refresh_token: true,
                 password: true,
                 email: true,
                 id: true,
@@ -102,17 +104,20 @@ export class AuthService {
             if (!user.isEmailConfirmed) {
                 throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
             }
+            const refresh_token = v4();
+            await this.saveRefreshToken(refresh_token, user.id);
+            const jwt_rt = await this.jwtService.signAsync({ refresh_token }, { secret: process.env.JWT_RT_SECRET, expiresIn: this.configService.get('JWT_EXPIRATION_TIME') });
+            user.refresh_token = jwt_rt;
             const token = await this.jwtService.signAsync({ user }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
 
             return { token }
         }
     }
 
-    // TODO: remove if not needed
-    // async saveRefreshToken(refresh_token: string, userId: number) {
-    //     const hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
-    //     return this.usersRepository.update(userId, { refresh_token: hash });
-    // }
+    async saveRefreshToken(refresh_token: string, userId: number) {
+        const hash = crypto.createHash('sha256').update(refresh_token).digest('hex');
+        return this.usersRepository.update(userId, { refresh_token: hash });
+    }
 
     async activateEmail(email: string): Promise<UpdateResult> {
         // Update Confirm email 
