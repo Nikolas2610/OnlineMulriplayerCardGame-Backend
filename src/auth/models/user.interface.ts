@@ -7,6 +7,7 @@ export interface User {
     email?: string;
     password?: string;
     isEmailConfirmed?: boolean;
+    refresh_token: string;
     role?: Role;
     posts?: FeedPost[];
 }
