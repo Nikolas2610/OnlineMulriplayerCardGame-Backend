@@ -30,7 +30,7 @@ export class CardsEntity {
     @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.card_id)
     table_cards_id: TablesCardsEntity
 
-    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.card_id)
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.card_id, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'user_id' })
     creator: UsersEntity
 }

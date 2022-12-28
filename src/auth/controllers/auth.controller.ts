@@ -1,4 +1,4 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Request, Post } from '@nestjs/common';
 import { UpdateResult } from 'typeorm';
 import { User } from '../models/user.interface';
 import { AuthService } from '../services/auth.service';
@@ -36,5 +36,10 @@ export class AuthController {
     @Post('update-password')
     async updatePassword(@Body() user: UpdatePasswordDto): Promise<UpdateResult> {
         return await this.authService.updatePassword(user);
+    }
+
+    @Post('logout')
+    async logout(@Request() req: any): Promise<UpdateResult> {
+        return await this.authService.logout(req.user);
     }
 }
