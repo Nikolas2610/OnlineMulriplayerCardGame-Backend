@@ -38,8 +38,9 @@ export class AuthController {
         return await this.authService.updatePassword(user);
     }
 
+    @Public()
     @Post('logout')
-    async logout(@Request() req: any): Promise<UpdateResult> {
-        return await this.authService.logout(req.user);
+    async logout(@Body('email') email: string): Promise<UpdateResult> {
+        return await this.authService.logout(email);
     }
 }
