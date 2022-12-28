@@ -106,7 +106,7 @@ export class AuthService {
             }
             const refresh_token = v4();
             await this.saveRefreshToken(refresh_token, user.id);
-            const jwt_rt = await this.jwtService.signAsync({ refresh_token }, { secret: process.env.JWT_RT_SECRET, expiresIn: this.configService.get('JWT_EXPIRATION_TIME') });
+            const jwt_rt = await this.jwtService.signAsync({ refresh_token }, { secret: process.env.JWT_RT_SECRET, expiresIn: '14d' });
             user.refresh_token = jwt_rt;
             const token = await this.jwtService.signAsync({ user }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
 

@@ -6,6 +6,7 @@ import { DecksEntity } from 'src/entities/db/deck.entity';
 import { GamesEntity } from 'src/entities/db/game.entity';
 import { TablesEntity } from 'src/entities/db/table.entity';
 import { UsersEntity } from 'src/entities/db/user.entity';
+import { UserService } from 'src/user/user.service';
 import { Repository } from 'typeorm';
 import { User } from './dto/user.dto';
 

@@ -26,8 +26,8 @@ export class TablesEntity {
     updated_at: Date;
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_id)
-    @JoinColumn({ name: 'user_id' })
-    user_id: UsersEntity
+    @JoinColumn({ name: 'creator' })
+    creator: UsersEntity
 
     @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.table_id)
     @JoinColumn({ name: 'game_id' })

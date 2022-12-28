@@ -2,25 +2,30 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { CardsEntity } from '../db/card.entity';
 import { faker } from '@faker-js/faker';
+import { UsersEntity } from '../db/user.entity';
 
 
 export class CardSeeder {
     constructor(
         @InjectRepository(CardsEntity)
-        private readonly cardsReposiroty: Repository<CardsEntity>
+        private readonly cardsReposiroty: Repository<CardsEntity>,
+        @InjectRepository(UsersEntity)
+        private readonly usersRepository: Repository<UsersEntity>
     ) {
-        // this.addFakeCards(52);
+        // this.addFakeCards(20);
         // this.getCards();
         // this.deleteCard();
     }
 
     async addFakeCards(cards: number) {
+        const user = await this.usersRepository.findOne({ where: { id: 13 } });
+
         for (let index = 0; index < cards; index++) {
-            const image = {
-                name: faker.name.firstName(),
-                image: faker.image.imageUrl(),
-                private: faker.helpers.arrayElement([true, false])
-            }
+            const image = new CardsEntity();
+            image.name = faker.name.firstName(),
+                image.image = faker.image.imageUrl(),
+                image.private = faker.helpers.arrayElement([true, false]),
+                image.creator = user
             await this.cardsReposiroty.save(image)
         }
     }
