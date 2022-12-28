@@ -7,7 +7,7 @@ import { GamesEntity } from 'src/entities/db/game.entity';
 import { TablesEntity } from 'src/entities/db/table.entity';
 import { UsersEntity } from 'src/entities/db/user.entity';
 import { UserService } from 'src/user/user.service';
-import { Repository } from 'typeorm';
+import { DeleteResult, Repository, UpdateResult } from 'typeorm';
 import { User } from './dto/user.dto';
 
 @Injectable()
@@ -24,8 +24,19 @@ export class AdminService {
     @InjectRepository(CardsEntity)
     private readonly cardsRepository: Repository<CardsEntity>,
   ) { }
-  findAllUsers() {
-    const users = this.usersRepository.find();
+
+  async getDashboardDetails(): Promise<{ tables: number, games: number, decks: number, cards: number }> {
+    const tables = await this.tablesRepository.count();
+    const games = await this.gamesRepository.count();
+    const decks = await this.decksRepository.count();
+    const cards = await this.cardsRepository.count();
+    return { tables, games, decks, cards };
+  }
+
+  async findAllUsers() {
+    const users = await this.usersRepository.find();
+    // Remove refresh token 
+    Object.values(users).forEach(user => delete user.refresh_token);
     return users;
   }
 
@@ -33,14 +44,14 @@ export class AdminService {
     return `This action returns a #${id} admin`;
   }
 
-  updateUserDetails(updateAdminDto: User) {
+  async updateUserDetails(updateAdminDto: User): Promise<UpdateResult> {
     const { id, username, email, role, isEmailConfirmed } = updateAdminDto;
     // TODO: check the email confirm type
-    return this.usersRepository.update(id, { username, email, role, isEmailConfirmed });
+    return await this.usersRepository.update(id, { username, email, role, isEmailConfirmed });
   }
 
-  deleteUser(userId: number) {
-    return this.usersRepository.delete(userId);
+  async deleteUser(userId: number): Promise<DeleteResult> {
+    return await this.usersRepository.delete(userId);
   }
 
   findAllDecks() {

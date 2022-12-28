@@ -56,7 +56,7 @@ export class GamesEntity {
     @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games, { onDelete: 'CASCADE' })
     deck: DecksEntity[]
 
-    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.id)
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.id, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'creator' })
     creator: UsersEntity
 

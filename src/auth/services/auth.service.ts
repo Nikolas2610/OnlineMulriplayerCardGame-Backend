@@ -169,4 +169,8 @@ export class AuthService {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
         }
     }
+
+    async logout(user: User): Promise<UpdateResult> {
+        return await this.usersRepository.update({ id: user.id }, { refresh_token: null });
+    }
 }

@@ -21,7 +21,7 @@ export class DecksEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => UsersEntity, (userEntity) => userEntity.decks)
+    @ManyToOne(() => UsersEntity, (userEntity) => userEntity.decks, { onDelete: 'SET NULL' })
     @JoinColumn({ name: 'creator_id' })
     creator: UsersEntity
 
