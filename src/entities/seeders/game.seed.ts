@@ -17,6 +17,7 @@ export class GameSeeder {
         // this.addGame();
         // this.addDecksToGame()
         // this.getGame(3);
+        // this.updateGrid()
     }
 
     async addGame() {
@@ -36,9 +37,8 @@ export class GameSeeder {
             game.dealer = faker.datatype.boolean();
             game.status_player = faker.datatype.boolean();
             game.rank = faker.datatype.boolean();
-            game.grid = faker.helpers.arrayElement([
-                '1x1', '2x1', '2x2', '3x3', '3x4', '4x4'
-            ]);
+            game.grid_cols = faker.datatype.number(5);
+            game.grid_rows = faker.datatype.number(5);
             game.private = faker.datatype.boolean();
             game.creator = userCreator;
             const response = await this.gamesRepository.save(game);
@@ -57,5 +57,19 @@ export class GameSeeder {
     async getGame(id: number) {
         const game = await this.gamesRepository.findOne({ where: { id: 3 }, relations: ['deck', 'creator'] });
         console.log(game);
+    }
+
+    async updateGrid() {
+        for (let index = 1; index < 39; index++) {
+            const grid_cols = faker.datatype.number({
+                min: 1,
+                max: 5
+            });
+            const grid_rows = faker.datatype.number({
+                min: 1,
+                max: 5
+            });
+            await this.gamesRepository.update({ id: index }, { grid_cols, grid_rows });
+        }
     }
 }

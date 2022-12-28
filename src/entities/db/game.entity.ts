@@ -36,7 +36,10 @@ export class GamesEntity {
     private: boolean;
 
     @Column()
-    grid: string;
+    grid_rows: number;
+
+    @Column()
+    grid_cols: number;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -50,7 +53,7 @@ export class GamesEntity {
     @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.id)
     hand_start_cards_id: HandStartCardsEntity
 
-    @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games)
+    @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games, { onDelete: 'CASCADE' })
     deck: DecksEntity[]
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.id)
