@@ -170,7 +170,7 @@ export class AuthService {
         }
     }
 
-    async logout(user: User): Promise<UpdateResult> {
-        return await this.usersRepository.update({ id: user.id }, { refresh_token: null });
+    async logout(email: string): Promise<UpdateResult> {
+        return await this.usersRepository.update({ email }, { refresh_token: null });
     }
 }
