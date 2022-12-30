@@ -7,12 +7,13 @@ import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, Up
 import { Role } from "../../auth/models/role.enum";
 import { RankEntity } from "src/entities/db/rank.entity";
 import { TableUsersEntity } from "src/entities/db/table_users.entity";
+import { CardsEntity } from "./card.entity";
 
 @Entity('users')
 export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number;
-
+    // TODO: Must do unique after finishing testings
     @Column()
     username: string;
 
@@ -22,11 +23,11 @@ export class UsersEntity {
     @Column({ select: false })
     password: string;
 
-    @Column({ default: false })
-    isEmailConfirmed: boolean;
-
     @Column({ nullable: true })
     refresh_token: string;
+
+    @Column({ default: false })
+    isEmailConfirmed: boolean;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -46,7 +47,7 @@ export class UsersEntity {
     @OneToMany(() => GamesEntity, (gamesEntity) => gamesEntity.creator)
     game_id: GamesEntity
 
-    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.user_id)
+    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.creator)
     table_id: GamesEntity
 
     @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.user_id)
@@ -57,4 +58,7 @@ export class UsersEntity {
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
     table_users_id: TableUsersEntity
+
+    @OneToMany(() => CardsEntity, (cardsEntity) => cardsEntity.creator)
+    card_id: CardsEntity
 }

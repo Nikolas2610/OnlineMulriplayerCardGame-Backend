@@ -1,6 +1,7 @@
 import { DecksEntity } from "src/entities/db/deck.entity";
 import { TablesCardsEntity } from "src/entities/db/table_cards.entity";
-import { Column, CreateDateColumn, Entity, ManyToMany, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { UsersEntity } from "./user.entity";
 
 
 @Entity('card')
@@ -28,4 +29,8 @@ export class CardsEntity {
 
     @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.card_id)
     table_cards_id: TablesCardsEntity
+
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.card_id, { onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'user_id' })
+    creator: UsersEntity
 }

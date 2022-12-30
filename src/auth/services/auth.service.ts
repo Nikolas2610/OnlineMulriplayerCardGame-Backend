@@ -14,6 +14,7 @@ import { User } from '../models/user.interface';
 import { v4 } from 'uuid';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import { UserRegisterDto } from '../dto/user-register.dto';
 
 @Injectable()
 export class AuthService {
@@ -33,7 +34,7 @@ export class AuthService {
     }
 
     // Register Account
-    async registerAccount(user: User): Promise<User> {
+    async registerAccount(user: UserRegisterDto): Promise<User> {
         const { username, email, password } = user;
         // Hash the password
         const hashPassword = await this.hashPassword(password);
@@ -63,6 +64,7 @@ export class AuthService {
             select: {
                 username: true,
                 isEmailConfirmed: true,
+                refresh_token: true,
                 password: true,
                 email: true,
                 id: true,
@@ -102,23 +104,13 @@ export class AuthService {
             if (!user.isEmailConfirmed) {
                 throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
             }
-            delete user.isEmailConfirmed;
-            //          Create hash refresh token to save to database
-            const uuid = v4();
-            const query = await this.saveRefreshToken(uuid, user.id);
-            if (query.affected) {
-                // Create refresh token 
-                const refresh_token = await this.jwtService.signAsync({ refresh_token: uuid }, { expiresIn: '7d' });
+            const refresh_token = v4();
+            await this.saveRefreshToken(refresh_token, user.id);
+            const jwt_rt = await this.jwtService.signAsync({ refresh_token }, { secret: process.env.JWT_RT_SECRET, expiresIn: '14d' });
+            user.refresh_token = jwt_rt;
+            const token = await this.jwtService.signAsync({ user }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
 
-                // Create jwt secret token 
-                const token = await this.jwtService.signAsync({ user, token: refresh_token }, { expiresIn: this.configService.get('JWT_EXPIRATION_TIME') })
-
-                return { token }
-            } else {
-                // User not update with refresh token
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'The user does not exists' }, HttpStatus.BAD_REQUEST);
-            }
-
+            return { token }
         }
     }
 
@@ -176,5 +168,9 @@ export class AuthService {
             // Bad request
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Bad confirmation token' }, HttpStatus.BAD_REQUEST);
         }
+    }
+
+    async logout(email: string): Promise<UpdateResult> {
+        return await this.usersRepository.update({ email }, { refresh_token: null });
     }
 }

@@ -18,6 +18,10 @@ import { TableModule } from './table/table.module';
 import { RankModule } from './rank/rank.module';
 import { EntitiesModule } from './entities/entities.module';
 import { AdminModule } from './admin/admin.module';
+import { UserModule } from './user/user.module';
+import { APP_GUARD } from '@nestjs/core';
+import { JwtService } from '@nestjs/jwt';
+import { JwtGuard } from './auth/guards/jwt.guard';
 console.log(join(__dirname, 'email-templates'));
 
 @Module({
@@ -52,8 +56,12 @@ console.log(join(__dirname, 'email-templates'));
         adapter: new HandlebarsAdapter()
       }
     }),
-    FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule],
+    FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule],
   controllers: [AppController],
-  providers: [AppService]
+  providers: [AppService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtGuard
+    }]
 })
 export class AppModule { }
