@@ -1,14 +1,12 @@
 import { Module } from '@nestjs/common';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { CardsEntity } from 'src/entities/db/card.entity';
 import { DeckController } from './controller/deck.controller';
-import { DecksEntity } from '../entities/db/deck.entity';
-// import { SeedDeck } from './seed/deck.seed';
 import { DeckService } from './services/deck.service';
+import { EntitiesModule } from 'src/entities/entities.module';
+import { JwtService } from '@nestjs/jwt';
 
 @Module({
-  imports: [],
+  imports: [EntitiesModule],
   controllers: [DeckController],
-  providers: [DeckService]
+  providers: [DeckService, JwtService]
 })
 export class DeckModule { }
