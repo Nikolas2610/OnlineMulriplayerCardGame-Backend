@@ -22,7 +22,10 @@ import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
 import { JwtGuard } from './auth/guards/jwt.guard';
+import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
 console.log(join(__dirname, 'email-templates'));
+console.log(__dirname);
 
 @Module({
   imports: [
@@ -55,6 +58,9 @@ console.log(join(__dirname, 'email-templates'));
         dir: join(__dirname, 'email-templates'),
         adapter: new HandlebarsAdapter()
       }
+    }),
+    ServeStaticModule.forRoot({
+      rootPath: join(__dirname, '..', 'uploads'),
     }),
     FeedModule, AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule],
   controllers: [AppController],
