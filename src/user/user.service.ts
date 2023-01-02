@@ -98,6 +98,7 @@ export class UserService {
     return await this.decksRepository.find(
       {
         where: { creator: new EqualOperator(user.id) },
+        relations: ['cards']
       }
     )
   }

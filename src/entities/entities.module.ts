@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { NestApplicationContext } from '@nestjs/core';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthService } from 'src/auth/services/auth.service';
 import { UsersEntity } from 'src/entities/db/user.entity';
 import { CardsEntity } from './db/card.entity';
 import { DecksEntity } from './db/deck.entity';
@@ -13,9 +15,11 @@ import { TablesCardsEntity } from './db/table_cards.entity';
 import { TablesDecksEntity } from './db/table_deck.entity';
 import { TableUsersEntity } from './db/table_users.entity';
 import { CardSeeder } from './seeders/card.seed';
-import { SeedDeck } from './seeders/deck.seed';
+import { DeckSeeder } from './seeders/deck.seed';
+import { FakeDataSeeder } from './seeders/fake-data';
 import { GameSeeder } from './seeders/game.seed';
 import { RoleSeeder } from './seeders/role.seed';
+import { UserSeeder } from './seeders/user.seed';
 
 @Module({
     imports: [TypeOrmModule.forFeature([
@@ -33,7 +37,7 @@ import { RoleSeeder } from './seeders/role.seed';
         StatusEntity,
         UsersEntity
     ])],
-    providers: [SeedDeck, CardSeeder, GameSeeder, RoleSeeder],
-    exports: [TypeOrmModule]
+    providers: [DeckSeeder, CardSeeder, GameSeeder, RoleSeeder, UserSeeder, FakeDataSeeder],
+    exports: [TypeOrmModule, UserSeeder]
 })
 export class EntitiesModule { }

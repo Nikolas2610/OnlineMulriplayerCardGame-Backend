@@ -20,12 +20,8 @@ import { EntitiesModule } from './entities/entities.module';
 import { AdminModule } from './admin/admin.module';
 import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
-import { JwtService } from '@nestjs/jwt';
 import { JwtGuard } from './auth/guards/jwt.guard';
-import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
-console.log(join(__dirname, 'email-templates'));
-console.log(__dirname);
 
 @Module({
   imports: [

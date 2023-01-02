@@ -67,8 +67,6 @@ export class CardController {
         @Body() card: EditCardDto,
         @Request() req: any
     ): Promise<CardsEntity> {
-        console.log(image);
-        
         return await this.cardService.updateCardWithImage(req.user, card, image);
     }
 

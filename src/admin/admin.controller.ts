@@ -1,8 +1,12 @@
-import { Controller, Get, Body, Patch, Request, Delete, UseGuards, HttpException, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Request, Delete, UseGuards, HttpException, HttpStatus, FileTypeValidator, MaxFileSizeValidator, ParseFilePipe, UploadedFile, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { Roles } from 'src/auth/decorators/roles.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RolesGuard } from 'src/auth/guards/roles.guard';
 import { Role } from 'src/auth/models/role.enum';
+import { EditCardDto } from 'src/card/dto/EditCard.dto';
+import { CardsEntity } from 'src/entities/db/card.entity';
+import { DecksEntity } from 'src/entities/db/deck.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { AdminService } from './admin.service';
 import { User } from './dto/user.dto';
@@ -34,8 +38,6 @@ export class AdminController {
     try {
       return await this.adminService.deleteUser(userId);
     } catch (error) {
-      console.log(error);
-
       throw new HttpException({ status: HttpStatus.METHOD_NOT_ALLOWED, message: 'Can delete this user' }, HttpStatus.METHOD_NOT_ALLOWED);
     }
   }
@@ -43,6 +45,22 @@ export class AdminController {
   @Get('decks')
   findAllDecks() {
     return this.adminService.findAllDecks();
+  }
+
+  @Patch('deck')
+  async editDeck(
+    @Request() req: any,
+    @Body() deck: DecksEntity
+  ) {
+    return await this.adminService.editDeck(deck);
+  }
+
+  @Delete('deck')
+  async deleteDeck(
+    @Request() req: any,
+    @Body('deck_id') deck_id: number
+  ) {
+    return await this.adminService.deleteDeck(deck_id)
   }
 
   @Get('games')
@@ -58,5 +76,39 @@ export class AdminController {
   @Get('cards')
   findAllCards() {
     return this.adminService.findAllCards();
+  }
+
+  @Patch('card')
+  @UseInterceptors(FileInterceptor('image'))
+  async updateCard(
+    @Body() card: EditCardDto,
+    @Request() req: any
+  ): Promise<CardsEntity> {
+    return await this.adminService.updateCardWithoutImage(card);
+  }
+
+  @Patch('card/image')
+  @UseInterceptors(FileInterceptor('image'))
+  async updateCardWithImage(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new FileTypeValidator({ fileType: '.(png|jpeg|jpg|svg)' }),
+          new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
+        ],
+      }),
+    ) image: Express.Multer.File,
+    @Body() card: EditCardDto,
+    @Request() req: any
+  ): Promise<CardsEntity> {
+    return await this.adminService.updateCardWithImage(card, image);
+  }
+
+  @Delete('card')
+  async deleteCard(
+    @Request() req: any,
+    @Body('card_id') card_id: number,
+  ) {
+    return await this.adminService.deleteCard(card_id);
   }
 }
