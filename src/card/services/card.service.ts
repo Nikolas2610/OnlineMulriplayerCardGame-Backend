@@ -14,7 +14,7 @@ import { EditCardDto } from '../dto/EditCard.dto';
 export class CardService {
     constructor(
         @InjectRepository(CardsEntity)
-        private readonly cardsReposiroty: Repository<CardsEntity>,
+        private readonly cardsRepository: Repository<CardsEntity>,
         @InjectRepository(UsersEntity)
         private readonly usersReposiroty: Repository<UsersEntity>,
     ) {
@@ -22,11 +22,11 @@ export class CardService {
     }
 
     async getPublicCards(): Promise<CardsEntity[]> {
-        return await this.cardsReposiroty.find({ where: { private: false } });
+        return await this.cardsRepository.find({ where: { private: false } });
     }
 
     async getUserCards(user: User): Promise<CardsEntity[]> {
-        return await this.cardsReposiroty.find({ where: { creator: new EqualOperator(user.id) } });
+        return await this.cardsRepository.find({ where: { creator: new EqualOperator(user.id) } });
     }
 
     async saveCard(user: User, card: CreateCardDto, image: Express.Multer.File): Promise<CardsEntity> {
@@ -36,7 +36,7 @@ export class CardService {
         imageCard.image = await this.saveImage(image);
         imageCard.private = card.private === 'true';
         imageCard.creator = userDB;
-        const response = await this.cardsReposiroty.save(imageCard);
+        const response = await this.cardsRepository.save(imageCard);
         delete response.creator
         return response;
     }
@@ -55,21 +55,21 @@ export class CardService {
     }
 
     async updateCardWithImage(user: User, card: EditCardDto, image: Express.Multer.File): Promise<CardsEntity> {
-        const cardDB = await this.cardsReposiroty.findOne({ where: { id: parseInt(card.id), creator: new EqualOperator(user.id) } });
+        const cardDB = await this.cardsRepository.findOne({ where: { id: parseInt(card.id), creator: new EqualOperator(user.id) } });
         cardDB.name = card.name;
         cardDB.private = card.private === 'true';
         this.deleteCardImage(cardDB.image);
         cardDB.image = await this.saveImage(image);
-        const response = await this.cardsReposiroty.save(cardDB);
+        const response = await this.cardsRepository.save(cardDB);
         delete response.creator
         return response;
     }
 
     async updateCardWithoutImage(user: User, card: EditCardDto): Promise<CardsEntity> {
-        const cardDB = await this.cardsReposiroty.findOne({ where: { id: parseInt(card.id), creator: new EqualOperator(user.id) } });
+        const cardDB = await this.cardsRepository.findOne({ where: { id: parseInt(card.id), creator: new EqualOperator(user.id) } });
         cardDB.name = card.name;
         cardDB.private = card.private === 'true';
-        const response = await this.cardsReposiroty.save(cardDB);
+        const response = await this.cardsRepository.save(cardDB);
         delete response.creator
         return response;
     }
@@ -88,7 +88,7 @@ export class CardService {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Card not exists with this user' }, HttpStatus.BAD_REQUEST);
         }
         try {
-            const response = await this.cardsReposiroty.delete({ id: card_id });
+            const response = await this.cardsRepository.delete({ id: card_id });
             this.deleteCardImage(query.image);
             return response;
         } catch (error) {
@@ -97,7 +97,7 @@ export class CardService {
     }
 
     async userOwnerOfCard(user: User, card_id: number): Promise<CardsEntity> {
-        return this.cardsReposiroty.findOne(
+        return this.cardsRepository.findOne(
             {
                 where: { id: card_id, creator: new EqualOperator(user.id) },
                 relations: ['creator']
