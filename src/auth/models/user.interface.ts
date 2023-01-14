@@ -1,4 +1,3 @@
-import { FeedPost } from "src/feed/models/post.interface";
 import { Role } from "./role.enum";
 
 export interface User {
@@ -6,8 +5,7 @@ export interface User {
     username?: string;
     email?: string;
     password?: string;
-    isEmailConfirmed?: boolean;
+    email_confirmed?: boolean;
     refresh_token: string;
     role?: Role;
-    posts?: FeedPost[];
 }

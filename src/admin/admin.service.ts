@@ -1,10 +1,10 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CardsEntity } from 'src/entities/db/card.entity';
-import { DecksEntity } from 'src/entities/db/deck.entity';
-import { GamesEntity } from 'src/entities/db/game.entity';
-import { TablesEntity } from 'src/entities/db/table.entity';
-import { UsersEntity } from 'src/entities/db/user.entity';
+import { CardsEntity } from 'src/entities/db/cards.entity';
+import { DecksEntity } from 'src/entities/db/decks.entity';
+import { GamesEntity } from 'src/entities/db/games.entity';
+import { TablesEntity } from 'src/entities/db/tables.entity';
+import { UsersEntity } from 'src/entities/db/users.entity';
 import { DeleteResult, EqualOperator, Repository, UpdateResult } from 'typeorm';
 import { User } from './dto/user.dto';
 import * as fs from 'fs';
@@ -46,9 +46,9 @@ export class AdminService {
   }
 
   async updateUserDetails(updateAdminDto: User): Promise<UpdateResult> {
-    const { id, username, email, role, isEmailConfirmed } = updateAdminDto;
+    const { id, username, email, role, email_confirmed } = updateAdminDto;
     // TODO: check the email confirm type
-    return await this.usersRepository.update(id, { username, email, role, isEmailConfirmed });
+    return await this.usersRepository.update(id, { username, email, role, email_confirmed });
   }
 
   async deleteUser(userId: number): Promise<DeleteResult> {

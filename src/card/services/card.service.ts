@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/admin/dto/user.dto';
-import { CardsEntity } from 'src/entities/db/card.entity';
-import { UsersEntity } from 'src/entities/db/user.entity';
+import { CardsEntity } from 'src/entities/db/cards.entity';
+import { UsersEntity } from 'src/entities/db/users.entity';
 import { EqualOperator, Repository } from 'typeorm';
 import { CreateCardDto } from '../dto/CreateCard.dto';
 import { extname } from 'path';

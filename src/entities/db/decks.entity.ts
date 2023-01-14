@@ -1,15 +1,16 @@
-import { UsersEntity } from "src/entities/db/user.entity";
-import { CardsEntity } from "src/entities/db/card.entity";
-import { GamesEntity } from "src/entities/db/game.entity";
+import { UsersEntity } from "src/entities/db/users.entity";
+import { CardsEntity } from "src/entities/db/cards.entity";
+import { GamesEntity } from "src/entities/db/games.entity";
 import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, ManyToMany, JoinTable, OneToMany, JoinColumn } from "typeorm";
+import { TablesDecksEntity } from "./table_decks.entity";
 
-@Entity('deck')
+@Entity('decks')
 export class DecksEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ length: 25 })
     name: string;
 
     @Column({ default: false })
@@ -22,17 +23,20 @@ export class DecksEntity {
     updated_at: Date;
 
     @ManyToOne(() => UsersEntity, (userEntity) => userEntity.decks, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'creator_id' })
+    @JoinColumn({ name: 'user_id' })
     creator: UsersEntity
 
     @ManyToMany(() => CardsEntity, (cardsEntity) => cardsEntity.deck)
-    @JoinTable({ name: 'card_deck' })
+    @JoinTable({ name: 'cards_deck' })
     cards: CardsEntity[]
 
-    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.deck_id)
-    hand_start_cards: HandStartCardsEntity
+    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.deck)
+    hand_start_cards_id: HandStartCardsEntity
 
     @ManyToMany(() => GamesEntity, (gamesEntity) => gamesEntity.deck)
-    @JoinTable({ name: 'deck_game' })
+    @JoinTable({ name: 'decks_game' })
     games: GamesEntity[]
+
+    @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.deck)
+    table_deck_id: TablesDecksEntity;
 }

@@ -1,14 +1,18 @@
-import { UsersEntity } from "src/entities/db/user.entity";
+import { UsersEntity } from "src/entities/db/users.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { TablesEntity } from "./table.entity";
+import { RolesEntity } from "./roles.entity";
+import { TablesEntity } from "./tables.entity";
 
 @Entity('table_users')
 export class TableUsersEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ nullable: true, length: 25 })
     status: string;
+
+    @Column({ nullable: true, length: 25 })
+    team: string;
 
     @Column()
     turn: number;
@@ -26,10 +30,14 @@ export class TableUsersEntity {
     updated_at: Date;
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_users_id)
-    @JoinColumn({ name: 'user' })
+    @JoinColumn({ name: 'user_id' })
     user: UsersEntity
 
-    @ManyToOne(() => TablesEntity, (tableEntity) => tableEntity.table_users_id)
-    @JoinColumn({ name: 'table' })
+    @ManyToOne(() => TablesEntity, (tableEntity) => tableEntity.table_users)
+    @JoinColumn({ name: 'table_id' })
     table: TablesEntity
+
+    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.table_user_id)
+    @JoinColumn({ name: 'role_id' })
+    role: RolesEntity
 }

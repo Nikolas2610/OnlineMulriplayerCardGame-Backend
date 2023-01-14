@@ -14,7 +14,7 @@ export class User {
     email: string;
 
     @IsNotEmpty()
-    isEmailConfirmed: boolean;
+    email_confirmed: boolean;
 
     @IsNotEmpty()
     role: Role

@@ -2,7 +2,7 @@ import { InjectRepository } from "@nestjs/typeorm";
 import { Role } from "src/auth/models/role.enum";
 import { AuthService } from "src/auth/services/auth.service";
 import { Repository } from "typeorm";
-import { UsersEntity } from "../db/user.entity";
+import { UsersEntity } from "../db/users.entity";
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
 
@@ -23,7 +23,7 @@ export class UserSeeder {
             admin.username = 'Admin';
             admin.email = 'admin@omcg.com';
             admin.password = await this.hashPassword('CardGame-0');
-            admin.isEmailConfirmed = true;
+            admin.email_confirmed = true;
             admin.role = Role.ADMIN;
             await this.usersRepository.save(admin);
         } catch (error) {
@@ -36,7 +36,7 @@ export class UserSeeder {
             const user = new UsersEntity();
             user.username = faker.internet.userName();
             user.email = faker.internet.email();
-            user.isEmailConfirmed = faker.datatype.boolean();
+            user.email_confirmed = faker.datatype.boolean();
             user.password = await this.hashPassword('CardGame-0');
             await this.usersRepository.save(user);
         }

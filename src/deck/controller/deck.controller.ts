@@ -1,7 +1,7 @@
 import { Controller, UseGuards, Body, Request, Post, Patch, Delete } from '@nestjs/common';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RefreshToken } from 'src/auth/guards/refresh-token.guard';
-import { DecksEntity } from 'src/entities/db/deck.entity';
+import { DecksEntity } from 'src/entities/db/decks.entity';
 import { DeleteResult } from 'typeorm';
 import { CreateDeck } from '../dto/CreateDeck.dto';
 import { DeckService } from '../services/deck.service';

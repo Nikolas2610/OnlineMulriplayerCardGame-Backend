@@ -4,10 +4,10 @@ import { UseGuards } from '@nestjs/common/decorators/core/use-guards.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { UserPasswords } from './dto/user-password.dto';
 import { RefreshToken } from 'src/auth/guards/refresh-token.guard';
-import { CardsEntity } from 'src/entities/db/card.entity';
-import { DecksEntity } from 'src/entities/db/deck.entity';
-import { GamesEntity } from 'src/entities/db/game.entity';
-import { TablesEntity } from 'src/entities/db/table.entity';
+import { CardsEntity } from 'src/entities/db/cards.entity';
+import { DecksEntity } from 'src/entities/db/decks.entity';
+import { GamesEntity } from 'src/entities/db/games.entity';
+import { TablesEntity } from 'src/entities/db/tables.entity';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, UpdateResult } from 'typeorm';
 
