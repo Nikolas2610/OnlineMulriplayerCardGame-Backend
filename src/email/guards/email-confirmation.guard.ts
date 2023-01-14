@@ -8,7 +8,7 @@ export class EmailConfirmationGuard implements CanActivate {
   ): boolean | Promise<boolean> | Observable<boolean> {
     const { user } = context.switchToHttp().getRequest();
 
-    if (!user?.isEmailConfirmed) {
+    if (!user?.email_confirmed) {
       throw new UnauthorizedException('Confirm your email first');
     }
     return true;

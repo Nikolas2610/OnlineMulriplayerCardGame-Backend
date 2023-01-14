@@ -1,17 +1,18 @@
-import { UsersEntity } from "src/entities/db/user.entity";
-import { DecksEntity } from "src/entities/db/deck.entity";
+import { UsersEntity } from "src/entities/db/users.entity";
+import { DecksEntity } from "src/entities/db/decks.entity";
 import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
-import { RolesEntity } from "src/entities/db/role.entity";
-import { TablesEntity } from "src/entities/db/table.entity";
+import { RolesEntity } from "src/entities/db/roles.entity";
+import { TablesEntity } from "src/entities/db/tables.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { StatusEntity } from "./status.entity";
+import { TeamsEntity } from "./teams.entity";
 
-@Entity('game')
+@Entity('games')
 export class GamesEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ length: 25 })
     name: string;
 
     @Column({ length: 1000 })
@@ -24,10 +25,13 @@ export class GamesEntity {
     max_players: number;
 
     @Column({ default: false })
-    dealer: boolean;
+    extra_roles: boolean;
 
     @Column({ default: false })
     status_player: boolean;
+
+    @Column({ default: false })
+    extra_teams: boolean;
 
     @Column({ default: false })
     rank: boolean;
@@ -47,10 +51,10 @@ export class GamesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @OneToMany(() => RolesEntity, (rolesEntity) => rolesEntity.id)
+    @OneToMany(() => RolesEntity, (rolesEntity) => rolesEntity.game)
     role_id: RolesEntity
 
-    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.id)
+    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.game)
     hand_start_cards_id: HandStartCardsEntity
 
     @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games, { onDelete: 'CASCADE' })
@@ -60,9 +64,12 @@ export class GamesEntity {
     @JoinColumn({ name: 'creator' })
     creator: UsersEntity
 
-    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_id)
+    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game)
     table_id: TablesEntity
 
     @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game_id)
     status_id: StatusEntity
+
+    @OneToMany(() => TeamsEntity, (teamsEntity) => teamsEntity.game_id)
+    teams: TeamsEntity
 }

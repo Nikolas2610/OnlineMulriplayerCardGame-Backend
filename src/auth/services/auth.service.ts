@@ -9,7 +9,7 @@ import { Repository, UpdateResult } from 'typeorm';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { UpdatePasswordDto } from '../dto/update-password.dto';
 import { UserLoginDto } from '../dto/user-login.dto';
-import { UsersEntity } from '../../entities/db/user.entity';
+import { UsersEntity } from '../../entities/db/users.entity';
 import { User } from '../models/user.interface';
 import { v4 } from 'uuid';
 import * as crypto from 'crypto';
@@ -42,7 +42,7 @@ export class AuthService {
         const registerUser = await this.usersRepository.save({
             username, email, password: hashPassword
         }).catch(() => {
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this email already exists' }, HttpStatus.BAD_REQUEST);
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this username or email already exists' }, HttpStatus.BAD_REQUEST);
         })
         // Send email confirmation
         const message = await this.emailConfirmationEmail.sendVerificationLink(email, username);
@@ -63,7 +63,7 @@ export class AuthService {
             where: { email },
             select: {
                 username: true,
-                isEmailConfirmed: true,
+                email_confirmed: true,
                 refresh_token: true,
                 password: true,
                 email: true,
@@ -101,7 +101,7 @@ export class AuthService {
         const user = await this.validateUser(email, password);
         if (user) {
             // Check if email is confirm 
-            if (!user.isEmailConfirmed) {
+            if (!user.email_confirmed) {
                 throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'Confirm your email first' }, HttpStatus.UNAUTHORIZED);
             }
             const refresh_token = v4();
@@ -121,14 +121,14 @@ export class AuthService {
 
     async activateEmail(email: string): Promise<UpdateResult> {
         // Update Confirm email 
-        return await this.usersRepository.update({ email }, { isEmailConfirmed: true })
+        return await this.usersRepository.update({ email }, { email_confirmed: true })
     }
 
     async forgotPassword(email: ForgotPasswordDto): Promise<String> {
         // Find the user if exists to the DB
         const user = await this.checkUserExists(email.email);
         // Check if email is confirm 
-        if (!user.isEmailConfirmed) {
+        if (!user.email_confirmed) {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Confirm your email first' }, HttpStatus.BAD_REQUEST);
         }
         // create token 

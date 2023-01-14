@@ -6,7 +6,7 @@ import { diskStorage } from 'multer';
 import { extname } from 'path';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RefreshToken } from 'src/auth/guards/refresh-token.guard';
-import { CardsEntity } from 'src/entities/db/card.entity';
+import { CardsEntity } from 'src/entities/db/cards.entity';
 import { CreateCardDto } from '../dto/CreateCard.dto';
 import { CardService } from '../services/card.service';
 import * as fs from 'fs';

@@ -1,8 +1,8 @@
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { CardsEntity } from '../db/card.entity';
+import { CardsEntity } from '../db/cards.entity';
 import { faker } from '@faker-js/faker';
-import { UsersEntity } from '../db/user.entity';
+import { UsersEntity } from '../db/users.entity';
 
 
 export class CardSeeder {

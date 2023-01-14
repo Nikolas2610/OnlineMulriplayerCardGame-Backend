@@ -1,6 +1,6 @@
-import { CardsEntity } from "src/entities/db/card.entity";
+import { CardsEntity } from "src/entities/db/cards.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { TablesDecksEntity } from "./table_deck.entity";
+import { TablesDecksEntity } from "./table_decks.entity";
 
 @Entity('table_cards')
 export class TablesCardsEntity {

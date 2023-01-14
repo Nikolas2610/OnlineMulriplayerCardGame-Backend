@@ -1,8 +1,8 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/admin/dto/user.dto';
-import { DecksEntity } from 'src/entities/db/deck.entity';
-import { UsersEntity } from 'src/entities/db/user.entity';
+import { DecksEntity } from 'src/entities/db/decks.entity';
+import { UsersEntity } from 'src/entities/db/users.entity';
 import { DeleteResult, Repository } from 'typeorm';
 import { CreateDeck } from '../dto/CreateDeck.dto';
 
