@@ -10,6 +10,7 @@ import { User } from './dto/user.dto';
 import * as fs from 'fs';
 import { extname } from 'path';
 import { EditCardDto } from 'src/card/dto/EditCard.dto';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class AdminService {
@@ -86,11 +87,22 @@ export class AdminService {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const ext = extname(image.originalname);
       const filename = `${uniqueSuffix}${ext}`;
-      fs.writeFileSync(`uploads/${filename}`, image.buffer);
+      const compressedImage = await this.compress(image.buffer);
+      fs.writeFileSync(`uploads/${filename}`, compressedImage);
       return filename;
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Unable to save the image' }, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async compress(image: Buffer): Promise<Buffer> {
+    const options = {
+      width: undefined,
+      height: 200
+    };
+    return sharp(image)
+      .resize(options)
+      .toBuffer();
   }
 
   async updateCardWithImage(card: EditCardDto, image: Express.Multer.File): Promise<CardsEntity> {

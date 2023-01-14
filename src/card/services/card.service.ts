@@ -8,6 +8,7 @@ import { CreateCardDto } from '../dto/CreateCard.dto';
 import { extname } from 'path';
 import * as fs from 'fs';
 import { EditCardDto } from '../dto/EditCard.dto';
+import * as sharp from 'sharp';
 
 
 @Injectable()
@@ -47,7 +48,8 @@ export class CardService {
             const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
             const ext = extname(image.originalname);
             const filename = `${uniqueSuffix}${ext}`;
-            fs.writeFileSync(`uploads/${filename}`, image.buffer);
+            const compressedImage = await this.compress(image.buffer);
+            fs.writeFileSync(`uploads/${filename}`, compressedImage);
             return filename;
         } catch (error) {
             throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -102,5 +104,15 @@ export class CardService {
                 where: { id: card_id, creator: new EqualOperator(user.id) },
                 relations: ['creator']
             });
+    }
+
+    async compress(image: Buffer): Promise<Buffer> {
+        const options = {
+            width: undefined,
+            height: 200
+        };
+        return sharp(image)
+            .resize(options)
+            .toBuffer();
     }
 }
