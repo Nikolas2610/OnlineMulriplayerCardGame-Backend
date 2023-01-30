@@ -4,6 +4,7 @@ import { RankEntity } from "src/entities/db/ranks.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { TablesDecksEntity } from "./table_decks.entity";
 import { TableUsersEntity } from "./table_users.entity";
+import { TableStatus } from "src/table/models/table-status.enum";
 
 @Entity('tables')
 export class TablesEntity {
@@ -19,8 +20,8 @@ export class TablesEntity {
     @Column({ nullable: true })
     password: string;
 
-    @Column()
-    status: string;
+    @Column({ type: 'enum', enum: TableStatus, default: TableStatus.CLOSE })
+    status: TableStatus;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -29,7 +30,7 @@ export class TablesEntity {
     updated_at: Date;
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'creator' })
+    @JoinColumn({ name: 'user_id' })
     creator: UsersEntity
 
     @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.table_id)

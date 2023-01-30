@@ -13,6 +13,15 @@ export class TablesCardsEntity {
     @Column({ default: false })
     rotate: number;
 
+    @Column({ nullable: true })
+    turn: number;
+
+    @Column({ nullable: true })
+    position_x: number;
+
+    @Column({ nullable: true })
+    position_y: number;
+
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
 

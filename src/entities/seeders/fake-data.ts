@@ -30,6 +30,6 @@ export class FakeDataSeeder {
         console.log('Add games DONE');
         await this.tableSeeder.addFakeTables(30);
         console.log('Add tables DONE');
-        console.log('Fake data add suffesfully');
+        console.log('Fake data added suffessfully');
     }
 }
