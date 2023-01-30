@@ -61,7 +61,7 @@ export class GamesEntity {
     deck: DecksEntity[]
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.id, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'creator' })
+    @JoinColumn({ name: 'user_id' })
     creator: UsersEntity
 
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game)

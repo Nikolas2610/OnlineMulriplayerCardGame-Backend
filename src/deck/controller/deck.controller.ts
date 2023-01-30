@@ -1,15 +1,23 @@
-import { Controller, UseGuards, Body, Request, Post, Patch, Delete } from '@nestjs/common';
+import { Controller, UseGuards, Body, Request, Post, Patch, Delete, Get } from '@nestjs/common';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RefreshToken } from 'src/auth/guards/refresh-token.guard';
 import { DecksEntity } from 'src/entities/db/decks.entity';
 import { DeleteResult } from 'typeorm';
 import { CreateDeck } from '../dto/CreateDeck.dto';
 import { DeckService } from '../services/deck.service';
+import { DeckReturn } from '../services/models/deck.return.model';
 
 @Controller('deck')
 @UseGuards(JwtGuard, RefreshToken)
 export class DeckController {
     constructor(private readonly deckService: DeckService) { }
+
+    @Get('/private-public')
+    async getPrivatePublicDecks(
+        @Request() req: any,
+    ): Promise<DeckReturn[]> {
+        return await this.deckService.getPrivatePublicDecks(req.user)
+    }
 
     @Post()
     async createDeck(
