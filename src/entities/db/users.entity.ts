@@ -1,23 +1,22 @@
-import { DecksEntity } from "src/entities/db/deck.entity";
-import { FeedPostEntity } from "src/feed/models/post.entity";
-import { GamesEntity } from "src/entities/db/game.entity";
-import { TablesDecksEntity } from "src/entities/db/table_deck.entity";
-import { TablesEntity } from "src/entities/db/table.entity";
+import { DecksEntity } from "src/entities/db/decks.entity";
+import { GamesEntity } from "src/entities/db/games.entity";
+import { TablesDecksEntity } from "src/entities/db/table_decks.entity";
+import { TablesEntity } from "src/entities/db/tables.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Role } from "../../auth/models/role.enum";
-import { RankEntity } from "src/entities/db/rank.entity";
+import { RankEntity } from "src/entities/db/ranks.entity";
 import { TableUsersEntity } from "src/entities/db/table_users.entity";
-import { CardsEntity } from "./card.entity";
+import { CardsEntity } from "./cards.entity";
 
 @Entity('users')
 export class UsersEntity {
     @PrimaryGeneratedColumn()
     id: number;
-    // TODO: Must do unique after finishing testings
-    @Column()
+
+    @Column({ unique: true, length: 25 })
     username: string;
 
-    @Column({ unique: true })
+    @Column({ unique: true, length: 50 })
     email: string;
 
     @Column({ select: false })
@@ -27,7 +26,7 @@ export class UsersEntity {
     refresh_token: string;
 
     @Column({ default: false })
-    isEmailConfirmed: boolean;
+    email_confirmed: boolean;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -38,8 +37,8 @@ export class UsersEntity {
     @Column({ type: 'enum', enum: Role, default: Role.USER })
     role: Role;
 
-    @OneToMany(() => FeedPostEntity, (feedPostEntity) => feedPostEntity.author)
-    feedPosts: FeedPostEntity
+    @OneToMany(() => CardsEntity, (cardsEntity) => cardsEntity.creator)
+    cards: CardsEntity
 
     @OneToMany(() => DecksEntity, (decksEntity) => decksEntity.creator)
     decks: DecksEntity
@@ -48,17 +47,14 @@ export class UsersEntity {
     game_id: GamesEntity
 
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.creator)
-    table_id: GamesEntity
+    tables: GamesEntity
 
     @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.user_id)
-    table_deck_id: TablesDecksEntity
-
-    @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
-    rank_id: RankEntity
+    table_decks: TablesDecksEntity
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
     table_users_id: TableUsersEntity
 
-    @OneToMany(() => CardsEntity, (cardsEntity) => cardsEntity.creator)
-    card_id: CardsEntity
+    @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
+    ranks: RankEntity
 }

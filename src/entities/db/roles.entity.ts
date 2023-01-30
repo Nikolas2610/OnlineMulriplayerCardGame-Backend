@@ -1,13 +1,14 @@
-import { GamesEntity } from "src/entities/db/game.entity";
+import { GamesEntity } from "src/entities/db/games.entity";
 import { HandStartCardsEntity } from "src/entities/db/hand_start_cards.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { TableUsersEntity } from "./table_users.entity";
 
-@Entity('role')
+@Entity('roles')
 export class RolesEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    @Column()
+    @Column({ length: 25 })
     name: string;
 
     @Column()
@@ -22,10 +23,13 @@ export class RolesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.id)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.role_id)
     @JoinColumn({ name: 'game_id' })
-    game_id: GamesEntity
+    game: GamesEntity
 
-    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.id)
+    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.role)
     hand_start_deck_id: HandStartCardsEntity
+
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.role)
+    table_user_id: TableUsersEntity;
 }

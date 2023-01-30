@@ -1,7 +1,7 @@
 import { InjectRepository } from "@nestjs/typeorm";
-import { RolesEntity } from "../db/role.entity";
+import { RolesEntity } from "../db/roles.entity";
 import { faker } from '@faker-js/faker';
-import { GamesEntity } from "../db/game.entity";
+import { GamesEntity } from "../db/games.entity";
 import { Repository } from "typeorm";
 
 export class RoleSeeder {
@@ -21,7 +21,7 @@ export class RoleSeeder {
             role.name = faker.lorem.word();
             role.max_players = faker.datatype.number(10);
             role.description = faker.lorem.paragraph();
-            role.game_id = game;
+            role.game = game;
             const response = await this.rolesRepository.save(role)
             console.log(response);
         }

@@ -1,5 +1,5 @@
 import { IsNotEmpty } from "class-validator";
-import { CardsEntity } from "src/entities/db/card.entity";
+import { CardsEntity } from "src/entities/db/cards.entity";
 
 export class CreateDeck {
     @IsNotEmpty()

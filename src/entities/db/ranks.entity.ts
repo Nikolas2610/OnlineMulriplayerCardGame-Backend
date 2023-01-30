@@ -1,8 +1,8 @@
-import { UsersEntity } from "src/entities/db/user.entity";
-import { TablesEntity } from "src/entities/db/table.entity";
+import { UsersEntity } from "src/entities/db/users.entity";
+import { TablesEntity } from "src/entities/db/tables.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 
-@Entity('rank')
+@Entity('ranks')
 export class RankEntity {
     @PrimaryGeneratedColumn()
     id: number;
@@ -19,11 +19,11 @@ export class RankEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => TablesEntity, (tablesEntity) => tablesEntity.rank_id)
+    @ManyToOne(() => TablesEntity, (tablesEntity) => tablesEntity.ranks)
     @JoinColumn({ name: 'table_id' })
-    table_id: TablesEntity
+    table: TablesEntity
 
-    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.rank_id)
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.ranks)
     @JoinColumn({ name: 'user_id' })
     user_id: UsersEntity
 }

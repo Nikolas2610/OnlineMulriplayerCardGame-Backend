@@ -1,23 +1,27 @@
-import { UsersEntity } from "src/entities/db/user.entity";
-import { GamesEntity } from "src/entities/db/game.entity";
-import { RankEntity } from "src/entities/db/rank.entity";
+import { UsersEntity } from "src/entities/db/users.entity";
+import { GamesEntity } from "src/entities/db/games.entity";
+import { RankEntity } from "src/entities/db/ranks.entity";
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
-import { TablesDecksEntity } from "./table_deck.entity";
+import { TablesDecksEntity } from "./table_decks.entity";
 import { TableUsersEntity } from "./table_users.entity";
+import { TableStatus } from "src/table/models/table-status.enum";
 
-@Entity('table')
+@Entity('tables')
 export class TablesEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
+    @Column({ length: 25 })
+    name: string;
+
     @Column({ default: false })
     private: boolean;
 
-    @Column()
-    status: string;
+    @Column({ nullable: true })
+    password: string;
 
-    @Column()
-    name: string;
+    @Column({ type: 'enum', enum: TableStatus, default: TableStatus.CLOSE })
+    status: TableStatus;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -25,20 +29,20 @@ export class TablesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_id, { onDelete: 'SET NULL' })
-    @JoinColumn({ name: 'creator' })
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables, { onDelete: 'SET NULL' })
+    @JoinColumn({ name: 'user_id' })
     creator: UsersEntity
 
     @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.table_id)
     @JoinColumn({ name: 'game_id' })
-    game_id: UsersEntity
+    game: GamesEntity
 
     @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.table_id)
-    table_deck_id: TablesDecksEntity
+    table_decks: TablesDecksEntity
 
-    @OneToMany(() => RankEntity, (rankEntity) => rankEntity.table_id)
-    rank_id: RankEntity
+    @OneToMany(() => RankEntity, (rankEntity) => rankEntity.table)
+    ranks: RankEntity
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table)
-    table_users_id: TableUsersEntity
+    table_users: TableUsersEntity
 }

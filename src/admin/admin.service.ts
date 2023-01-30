@@ -1,15 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { CardsEntity } from 'src/entities/db/card.entity';
-import { DecksEntity } from 'src/entities/db/deck.entity';
-import { GamesEntity } from 'src/entities/db/game.entity';
-import { TablesEntity } from 'src/entities/db/table.entity';
-import { UsersEntity } from 'src/entities/db/user.entity';
+import { CardsEntity } from 'src/entities/db/cards.entity';
+import { DecksEntity } from 'src/entities/db/decks.entity';
+import { GamesEntity } from 'src/entities/db/games.entity';
+import { TablesEntity } from 'src/entities/db/tables.entity';
+import { UsersEntity } from 'src/entities/db/users.entity';
 import { DeleteResult, EqualOperator, Repository, UpdateResult } from 'typeorm';
 import { User } from './dto/user.dto';
 import * as fs from 'fs';
 import { extname } from 'path';
 import { EditCardDto } from 'src/card/dto/EditCard.dto';
+import * as sharp from 'sharp';
 
 @Injectable()
 export class AdminService {
@@ -46,9 +47,9 @@ export class AdminService {
   }
 
   async updateUserDetails(updateAdminDto: User): Promise<UpdateResult> {
-    const { id, username, email, role, isEmailConfirmed } = updateAdminDto;
+    const { id, username, email, role, email_confirmed } = updateAdminDto;
     // TODO: check the email confirm type
-    return await this.usersRepository.update(id, { username, email, role, isEmailConfirmed });
+    return await this.usersRepository.update(id, { username, email, role, email_confirmed });
   }
 
   async deleteUser(userId: number): Promise<DeleteResult> {
@@ -86,11 +87,22 @@ export class AdminService {
       const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
       const ext = extname(image.originalname);
       const filename = `${uniqueSuffix}${ext}`;
-      fs.writeFileSync(`uploads/${filename}`, image.buffer);
+      const compressedImage = await this.compress(image.buffer);
+      fs.writeFileSync(`uploads/${filename}`, compressedImage);
       return filename;
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Unable to save the image' }, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async compress(image: Buffer): Promise<Buffer> {
+    const options = {
+      width: undefined,
+      height: 200
+    };
+    return sharp(image)
+      .resize(options)
+      .toBuffer();
   }
 
   async updateCardWithImage(card: EditCardDto, image: Express.Multer.File): Promise<CardsEntity> {
