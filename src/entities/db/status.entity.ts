@@ -9,8 +9,8 @@ export class StatusEntity {
     @Column({ length: 25 })
     name: string;
 
-    @Column({ length: 1000 })
-    description: string;
+    // @Column({ length: 1000 })
+    // description: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -18,7 +18,7 @@ export class StatusEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.status_id)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.status)
     @JoinColumn({ name: 'game_id' })
-    game_id: GamesEntity
+    game: GamesEntity
 }

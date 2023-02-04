@@ -52,10 +52,10 @@ export class GamesEntity {
     updated_at: Date;
 
     @OneToMany(() => RolesEntity, (rolesEntity) => rolesEntity.game)
-    role_id: RolesEntity
+    roles: RolesEntity[]
 
     @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.game)
-    hand_start_cards_id: HandStartCardsEntity
+    hand_start_cards: HandStartCardsEntity[]
 
     @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games, { onDelete: 'CASCADE' })
     deck: DecksEntity[]
@@ -67,9 +67,9 @@ export class GamesEntity {
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game)
     table_id: TablesEntity
 
-    @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game_id)
-    status_id: StatusEntity
+    @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game)
+    status: StatusEntity[]
 
-    @OneToMany(() => TeamsEntity, (teamsEntity) => teamsEntity.game_id)
-    teams: TeamsEntity
+    @OneToMany(() => TeamsEntity, (teamsEntity) => teamsEntity.game)
+    teams: TeamsEntity[]
 }

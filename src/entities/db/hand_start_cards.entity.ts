@@ -31,7 +31,7 @@ export class HandStartCardsEntity {
     @JoinColumn({ name: 'role_id' })
     role: RolesEntity
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.hand_start_cards_id)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.hand_start_cards)
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 }
