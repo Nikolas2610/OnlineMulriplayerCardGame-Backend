@@ -11,11 +11,11 @@ export class RolesEntity {
     @Column({ length: 25 })
     name: string;
 
-    @Column()
-    max_players: number;
+    // @Column()
+    // max_players: number;
 
-    @Column({ length: 1000 })
-    description: string;
+    // @Column({ length: 1000 })
+    // description: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -23,7 +23,7 @@ export class RolesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.role_id)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.roles)
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 
