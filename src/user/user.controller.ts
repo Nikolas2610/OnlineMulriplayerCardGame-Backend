@@ -10,6 +10,7 @@ import { GamesEntity } from 'src/entities/db/games.entity';
 import { TablesEntity } from 'src/entities/db/tables.entity';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, UpdateResult } from 'typeorm';
+import { Put } from '@nestjs/common/decorators';
 
 
 @Controller('user')
@@ -71,7 +72,23 @@ export class UserController {
   }
 
   @Get('tables')
-  getAllTables(@Request() req: any): Promise<TablesEntity[]> {
+  getAllTables(
+    @Request() req: any
+  ): Promise<TablesEntity[]> {
     return this.userService.getAllTables(req.user);
+  }
+
+  @Patch('table')
+  async editTable(
+    @Body('table') table: TablesEntity,
+  ) {
+    return this.userService.editTable(table);
+  }
+
+  @Delete('table')
+  async deleteTable(
+    @Body('id') id: number
+  ) {
+    return this.userService.deleteTable(id);
   }
 }

@@ -75,11 +75,29 @@ export class AdminService {
   }
 
   findAllTables() {
-    return this.tablesRepository.find();
+    return this.tablesRepository.find({relations:['game']});
   }
 
   findAllCards() {
     return this.cardsRepository.find();
+  }
+
+  async updateTable(table: TablesEntity) {
+    try {
+        await this.tablesRepository.save(table);
+        return { message: 'Table updated successfully'}
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async deleteTable(id: number) {
+    try {
+        await this.tablesRepository.delete(id);
+        return { message: 'Table deleted successfully'}
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async saveImage(image: Express.Multer.File) {
