@@ -9,7 +9,7 @@ import { StatusEntity } from 'src/entities/db/status.entity';
 import { TeamsEntity } from 'src/entities/db/teams.entity';
 import { UsersEntity } from 'src/entities/db/users.entity';
 import { Repository } from 'typeorm';
-import { CreateGame } from './models/create-game.interface';
+import { CreateGame } from './models/create-game.dto';
 import { GameReturn } from './models/game.return.model';
 import { CreateHandStartCards } from './models/relation/hand-start-cards/create-hand-start-cards.interface';
 import { CreateRole } from './models/relation/role/create-role.interface';

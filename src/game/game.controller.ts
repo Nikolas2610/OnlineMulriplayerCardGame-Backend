@@ -1,6 +1,6 @@
 import { Body, Controller, Request, Post, Get } from '@nestjs/common';
 import { GameService } from './game.service';
-import { CreateGame } from './models/create-game.interface';
+import { CreateGame } from './models/create-game.dto';
 import { GameReturn } from './models/game.return.model';
 import { CreateHandStartCards } from './models/relation/hand-start-cards/create-hand-start-cards.interface';
 import { CreateRole } from './models/relation/role/create-role.interface';
