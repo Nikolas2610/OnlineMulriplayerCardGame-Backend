@@ -99,8 +99,8 @@ export class GameSeeder {
         try {
             const status = new StatusEntity();
             status.name = statusName;
-            status.game_id = game;
-            status.description = faker.lorem.sentence();
+            status.game = game;
+            // status.description = faker.lorem.sentence();
             await this.statusRepository.save(status);
         } catch (error) {
             console.log(error);
@@ -119,7 +119,7 @@ export class GameSeeder {
         try {
             const team = new TeamsEntity();
             team.name = teamName;
-            team.game_id = game;
+            team.game = game;
             await this.teamsRepository.save(team);
         } catch (error) {
             console.log(error);
@@ -142,8 +142,8 @@ export class GameSeeder {
         try {
             const role = new RolesEntity();
             role.name = roleName;
-            role.max_players = faker.datatype.number(3);
-            role.description = faker.lorem.sentence();
+            // role.max_players = faker.datatype.number(3);
+            // role.description = faker.lorem.sentence();
             role.game = game;
             await this.rolesRepository.save(role);
         } catch (error) {
@@ -172,15 +172,6 @@ export class GameSeeder {
             .leftJoinAndSelect('deck.cards', 'card')
             .where('games.id = :id', { id: gameId })
             .getOne();
-
-
-        // game.deck.forEach(d => {
-        //     console.log(d.name);
-        //     console.log('--------------');
-        //     d.cards.forEach(c => {
-        //         console.log(c)
-        //     });
-        // })
 
         const print = game.deck.map(d => {
             const deck = d.name;

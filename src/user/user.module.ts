@@ -8,11 +8,11 @@ import { EmailModule } from 'src/email/email.module';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtService } from '@nestjs/jwt';
+import { GameService } from 'src/game/game.service';
 
 @Module({
   imports: [EntitiesModule, forwardRef(() => EmailModule)],
   controllers: [UserController],
-  providers: [UserService, AuthService, EmailConfirmationService, JwtService
-  ]
+  providers: [UserService, GameService, AuthService, EmailConfirmationService, JwtService]
 })
 export class UserModule { }

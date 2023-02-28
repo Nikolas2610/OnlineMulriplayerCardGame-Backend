@@ -17,5 +17,5 @@ export class TeamsEntity {
 
     @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.teams)
     @JoinColumn({ name: 'game_id' })
-    game_id: GamesEntity
+    game: GamesEntity
 }

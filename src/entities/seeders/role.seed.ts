@@ -19,11 +19,8 @@ export class RoleSeeder {
             const game = await this.gamesRepository.findOne({ where: { id: 21 } })
             const role = new RolesEntity();
             role.name = faker.lorem.word();
-            role.max_players = faker.datatype.number(10);
-            role.description = faker.lorem.paragraph();
             role.game = game;
             const response = await this.rolesRepository.save(role)
-            console.log(response);
         }
     }
 

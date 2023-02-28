@@ -1,13 +1,16 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRepository } from '@nestjs/typeorm';
+import { table } from 'console';
 import { User } from 'src/admin/dto/user.dto';
 import { AuthService } from 'src/auth/services/auth.service';
 import { CardsEntity } from 'src/entities/db/cards.entity';
 import { DecksEntity } from 'src/entities/db/decks.entity';
 import { GamesEntity } from 'src/entities/db/games.entity';
+import { HandStartCardsEntity } from 'src/entities/db/hand_start_cards.entity';
 import { TablesEntity } from 'src/entities/db/tables.entity';
 import { UsersEntity } from 'src/entities/db/users.entity';
+import { GameService } from 'src/game/game.service';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, EqualOperator, Repository, UpdateResult } from 'typeorm';
 import { UserPasswords } from './dto/user-password.dto';
@@ -27,6 +30,9 @@ export class UserService {
     private readonly gamesRepository: Repository<GamesEntity>,
     @InjectRepository(TablesEntity)
     private readonly tablesRepository: Repository<TablesEntity>,
+    @InjectRepository(HandStartCardsEntity)
+    private readonly handStartCardsRepository: Repository<HandStartCardsEntity>, 
+    private readonly gameService: GameService
   ) { }
 
   async getDashboardDetails(user: User): Promise<{ tables: number, games: number, decks: number, cards: number }> {
@@ -78,12 +84,12 @@ export class UserService {
     return await this.gamesRepository.update({ id: game.id }, game);
   }
 
-  async deleteGame(user: User, game_id: number): Promise<DeleteResult> {
-    const query = await this.userOwnerOfGame(user, game_id);
-    if (!query) {
+  async deleteGame(user: User, gameId: number): Promise<DeleteResult> {
+    const game = await this.userOwnerOfGame(user, gameId);
+    if (!game) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Game not exists with this user' }, HttpStatus.BAD_REQUEST);
     }
-    return await this.gamesRepository.delete({ id: game_id });
+    return await this.gameService.deleteGame(gameId);
   }
 
   async userOwnerOfGame(user: User, game_id: number): Promise<GamesEntity> {
@@ -104,18 +110,39 @@ export class UserService {
   }
 
   async getAllGames(user: User): Promise<GamesEntity[]> {
-    return await this.gamesRepository.find(
+    const games = await this.gamesRepository.find(
       {
         where: { creator: new EqualOperator(user.id) },
+        relations: ['roles', 'hand_start_cards', 'hand_start_cards.role', 'hand_start_cards.deck', 'teams', 'status', 'deck']
       }
     )
+    return games;
   }
 
   async getAllTables(user: User): Promise<TablesEntity[]> {
     return await this.tablesRepository.find(
       {
         where: { creator: new EqualOperator(user.id) },
+        relations: ['game']
       }
     )
+  }
+
+  async editTable(table: TablesEntity): Promise<{ message: string }> {
+    try {
+      await this.tablesRepository.save(table);
+      return { message: 'Table updated successfully' }
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async deleteTable(id: number): Promise<{ message: string }> {
+    try {
+      await this.tablesRepository.delete(id);
+      return { message: 'Table deleted successfully' }
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: error }, HttpStatus.BAD_REQUEST);
+    }
   }
 }

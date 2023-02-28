@@ -7,6 +7,7 @@ import { Role } from 'src/auth/models/role.enum';
 import { EditCardDto } from 'src/card/dto/EditCard.dto';
 import { CardsEntity } from 'src/entities/db/cards.entity';
 import { DecksEntity } from 'src/entities/db/decks.entity';
+import { TablesEntity } from 'src/entities/db/tables.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { AdminService } from './admin.service';
 import { User } from './dto/user.dto';
@@ -71,6 +72,20 @@ export class AdminController {
   @Get('tables')
   findAllTables() {
     return this.adminService.findAllTables();
+  }
+
+  @Patch('table')
+  updateTable(
+    @Body('table') table: TablesEntity
+  ) {
+    return this.adminService.updateTable(table);
+  }
+
+  @Delete('table')
+  deleteTable(
+    @Body('id') id: number
+  ) {
+    return this.adminService.deleteTable(id);
   }
 
   @Get('cards')
