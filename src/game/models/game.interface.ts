@@ -1,3 +1,5 @@
+import { DecksEntity } from "src/entities/db/decks.entity";
+
 export interface Game {
     id: number;
     name: string;
@@ -13,4 +15,5 @@ export interface Game {
     status_player: boolean;
     created_at: Date;
     updated_at: Date;
+    deck: DecksEntity[] | null;
 }

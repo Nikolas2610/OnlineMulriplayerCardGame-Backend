@@ -70,22 +70,35 @@ export class AdminService {
     return await this.decksRepository.delete(deck_id);
   }
 
-  findAllGames() {
-    return this.gamesRepository.find();
+  async findAllGames() {
+    const games =  await this.gamesRepository.find({
+      relations: [
+        'roles',
+        'hand_start_cards',
+        'hand_start_cards.role',
+        'hand_start_cards.deck',
+        'teams',
+        'status',
+        'deck'
+      ]
+    });
+    console.log(games[0]);
+    return games;
+    
   }
 
-  findAllTables() {
-    return this.tablesRepository.find({relations:['game']});
+  async findAllTables() {
+    return await this.tablesRepository.find({ relations: ['game'] });
   }
 
-  findAllCards() {
-    return this.cardsRepository.find();
+  async findAllCards() {
+    return await this.cardsRepository.find();
   }
 
   async updateTable(table: TablesEntity) {
     try {
-        await this.tablesRepository.save(table);
-        return { message: 'Table updated successfully'}
+      await this.tablesRepository.save(table);
+      return { message: 'Table updated successfully' }
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
     }
@@ -93,8 +106,8 @@ export class AdminService {
 
   async deleteTable(id: number) {
     try {
-        await this.tablesRepository.delete(id);
-        return { message: 'Table deleted successfully'}
+      await this.tablesRepository.delete(id);
+      return { message: 'Table deleted successfully' }
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
     }

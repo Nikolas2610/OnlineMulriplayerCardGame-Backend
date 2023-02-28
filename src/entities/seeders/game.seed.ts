@@ -173,15 +173,6 @@ export class GameSeeder {
             .where('games.id = :id', { id: gameId })
             .getOne();
 
-
-        // game.deck.forEach(d => {
-        //     console.log(d.name);
-        //     console.log('--------------');
-        //     d.cards.forEach(c => {
-        //         console.log(c)
-        //     });
-        // })
-
         const print = game.deck.map(d => {
             const deck = d.name;
             const cards = d.cards.map(c => c.id);

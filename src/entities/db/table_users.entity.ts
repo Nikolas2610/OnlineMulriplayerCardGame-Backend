@@ -37,7 +37,7 @@ export class TableUsersEntity {
     @JoinColumn({ name: 'table_id' })
     table: TablesEntity
 
-    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.table_user_id)
-    @JoinColumn({ name: 'role_id' })
+    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.table_user_id, { cascade: true})
+    @JoinColumn({ name: 'role_id'})
     role: RolesEntity
 }

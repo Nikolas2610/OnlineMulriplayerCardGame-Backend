@@ -68,6 +68,16 @@ export class DeckService {
         if (user.id !== deck.creator.id) {
             throw new HttpException({ status: HttpStatus.UNAUTHORIZED, message: 'Unauthorized' }, HttpStatus.UNAUTHORIZED);
         }
-        return await this.decksRepository.delete(deck_id);
+        try {
+            return await this.decksRepository.delete(deck_id);
+        } catch (error) {
+            // Check if the error is related to a foreign key constraint
+            if (error.code === 'ER_ROW_IS_REFERENCED_2') {
+                throw new HttpException({ status: HttpStatus.CONFLICT, message: 'Cannot delete deck with related records' }, HttpStatus.CONFLICT);
+            } else {
+                // Handle any other error
+                throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Error deleting deck' }, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        }
     }
 }
