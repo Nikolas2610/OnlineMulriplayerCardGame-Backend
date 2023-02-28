@@ -10,6 +10,7 @@ import { GamesEntity } from 'src/entities/db/games.entity';
 import { HandStartCardsEntity } from 'src/entities/db/hand_start_cards.entity';
 import { TablesEntity } from 'src/entities/db/tables.entity';
 import { UsersEntity } from 'src/entities/db/users.entity';
+import { GameService } from 'src/game/game.service';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, EqualOperator, Repository, UpdateResult } from 'typeorm';
 import { UserPasswords } from './dto/user-password.dto';
@@ -30,7 +31,8 @@ export class UserService {
     @InjectRepository(TablesEntity)
     private readonly tablesRepository: Repository<TablesEntity>,
     @InjectRepository(HandStartCardsEntity)
-    private readonly handStartCardsRepository: Repository<HandStartCardsEntity>
+    private readonly handStartCardsRepository: Repository<HandStartCardsEntity>, 
+    private readonly gameService: GameService
   ) { }
 
   async getDashboardDetails(user: User): Promise<{ tables: number, games: number, decks: number, cards: number }> {
@@ -82,12 +84,12 @@ export class UserService {
     return await this.gamesRepository.update({ id: game.id }, game);
   }
 
-  async deleteGame(user: User, game_id: number): Promise<DeleteResult> {
-    const query = await this.userOwnerOfGame(user, game_id);
-    if (!query) {
+  async deleteGame(user: User, gameId: number): Promise<DeleteResult> {
+    const game = await this.userOwnerOfGame(user, gameId);
+    if (!game) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Game not exists with this user' }, HttpStatus.BAD_REQUEST);
     }
-    return await this.gamesRepository.delete({ id: game_id });
+    return await this.gameService.deleteGame(gameId);
   }
 
   async userOwnerOfGame(user: User, game_id: number): Promise<GamesEntity> {
@@ -140,7 +142,7 @@ export class UserService {
       await this.tablesRepository.delete(id);
       return { message: 'Table deleted successfully' }
     } catch (error) {
-      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: error }, HttpStatus.BAD_REQUEST);
     }
   }
 }
