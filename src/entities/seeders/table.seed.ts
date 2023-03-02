@@ -47,7 +47,7 @@ export class TableSeeder {
                 table.password = table.private ? 'tablepass' : '';
                 table.status = this.getRandomEnumValue();
                 table.game = await this.getGameWithDecksAndCards(Math.floor(Math.random() * (games - 1)) + 1);
-                table.creator = users[faker.datatype.number({
+                table.creator = table.game_master = users[faker.datatype.number({
                     min: 1,
                     max: (users.length - 1)
                 })];
@@ -90,7 +90,6 @@ export class TableSeeder {
                 userTable.team = null;
                 userTable.turn = counter;
                 userTable.playing = true;
-                userTable.game_master = counter === 1 ? true : false;
                 counter++;
                 await this.tableUsersRepository.save(userTable);
                 // Create deck for the user

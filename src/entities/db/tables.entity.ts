@@ -20,8 +20,11 @@ export class TablesEntity {
     @Column({ nullable: true })
     password: string;
 
-    @Column({ type: 'enum', enum: TableStatus, default: TableStatus.CLOSE })
+    @Column({ type: 'enum', enum: TableStatus, default: TableStatus.WAITING })
     status: TableStatus;
+
+    @Column()
+    public_url: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -45,4 +48,7 @@ export class TablesEntity {
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table)
     table_users: TableUsersEntity
+
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables_game_master)
+    game_master: UsersEntity
 }
