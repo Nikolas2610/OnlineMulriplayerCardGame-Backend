@@ -14,14 +14,11 @@ export class TableUsersEntity {
     @Column({ nullable: true, length: 25 })
     team: string;
 
-    @Column()
+    @Column({ nullable: true })
     turn: number;
 
     @Column()
     playing: boolean;
-
-    @Column()
-    game_master: boolean;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -33,11 +30,11 @@ export class TableUsersEntity {
     @JoinColumn({ name: 'user_id' })
     user: UsersEntity
 
-    @ManyToOne(() => TablesEntity, (tableEntity) => tableEntity.table_users)
+    @ManyToOne(() => TablesEntity, (tableEntity) => tableEntity.table_users, { cascade: true })
     @JoinColumn({ name: 'table_id' })
     table: TablesEntity
 
-    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.table_user_id, { cascade: true})
-    @JoinColumn({ name: 'role_id'})
+    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.table_user_id, { cascade: true })
+    @JoinColumn({ name: 'role_id' })
     role: RolesEntity
 }

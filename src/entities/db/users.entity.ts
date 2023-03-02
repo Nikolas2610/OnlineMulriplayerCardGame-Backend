@@ -57,4 +57,7 @@ export class UsersEntity {
 
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
     ranks: RankEntity
+
+    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_master)
+    tables_game_master: TablesEntity
 }
