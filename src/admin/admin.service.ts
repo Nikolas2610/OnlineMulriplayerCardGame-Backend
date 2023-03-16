@@ -11,6 +11,9 @@ import * as fs from 'fs';
 import { extname } from 'path';
 import { EditCardDto } from 'src/card/dto/EditCard.dto';
 import * as sharp from 'sharp';
+import { TableUsersEntity } from 'src/entities/db/table_users.entity';
+import { TablesDecksEntity } from 'src/entities/db/table_decks.entity';
+import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 
 @Injectable()
 export class AdminService {
@@ -25,6 +28,12 @@ export class AdminService {
     private readonly tablesRepository: Repository<TablesEntity>,
     @InjectRepository(CardsEntity)
     private readonly cardsRepository: Repository<CardsEntity>,
+    @InjectRepository(TableUsersEntity)
+    private readonly tableUsersRepository: Repository<TableUsersEntity>,
+    @InjectRepository(TablesDecksEntity)
+    private readonly tableDecksRepository: Repository<TablesDecksEntity>,
+    @InjectRepository(TablesCardsEntity)
+    private readonly tableCardsRepository: Repository<TablesCardsEntity>,
   ) { }
 
   async getDashboardDetails(): Promise<{ tables: number, games: number, decks: number, cards: number }> {
@@ -71,7 +80,7 @@ export class AdminService {
   }
 
   async findAllGames() {
-    const games =  await this.gamesRepository.find({
+    const games = await this.gamesRepository.find({
       relations: [
         'roles',
         'hand_start_cards',
@@ -82,9 +91,7 @@ export class AdminService {
         'deck'
       ]
     });
-    console.log(games[0]);
     return games;
-    
   }
 
   async findAllTables() {
@@ -175,6 +182,29 @@ export class AdminService {
       return response;
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'This card is used to a deck' }, HttpStatus.BAD_REQUEST);
+    }
+  }
+
+  async deleteTableUsers(id: number) {
+    try {
+      const users = await this.tableUsersRepository.find({ where: { table: new EqualOperator(id) } });
+      const decks = await this.tableDecksRepository.find({ where: { table: new EqualOperator(id) } });
+  
+      // Delete cards for each deck
+      for (const deck of decks) {
+        const cards = await this.tableCardsRepository.find({ where: { table_deck: new EqualOperator(deck.id )} });
+        const cardPromises = cards.map(card => this.tableCardsRepository.delete(card.id));
+        await Promise.all(cardPromises);
+        await this.tableDecksRepository.delete(deck.id);
+      }
+  
+      // Delete users
+      const userPromises = users.map(user => this.tableUsersRepository.delete(user.id));
+      await Promise.all(userPromises);
+  
+      return { success: true };
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);
     }
   }
 }

@@ -88,6 +88,13 @@ export class AdminController {
     return this.adminService.deleteTable(id);
   }
 
+  @Delete('table/users')
+  async deleteTableUsers(
+    @Body('id') id: number
+  ) {
+    return await this.adminService.deleteTableUsers(id);
+  }
+
   @Get('cards')
   findAllCards() {
     return this.adminService.findAllCards();

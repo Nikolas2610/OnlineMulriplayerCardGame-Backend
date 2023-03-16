@@ -26,14 +26,12 @@ export class JwtGuardWebSocket implements NestInterceptor {
 
   private extractJwtToken(headers: any): string | undefined {
     const authHeader = headers.authorization;
-    console.log(authHeader);
     
     if (!authHeader) {
       return undefined;
     }
 
     const [, token] = authHeader.split(' ');
-    console.log(token);
     
     return token;
   }

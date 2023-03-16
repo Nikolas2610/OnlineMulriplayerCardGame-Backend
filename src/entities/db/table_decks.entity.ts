@@ -1,13 +1,19 @@
 import { UsersEntity } from "src/entities/db/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { TableDeckType } from "src/table/models/table-deck-type.enum";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { DecksEntity } from "./decks.entity";
 import { TablesEntity } from "./tables.entity";
 import { TablesCardsEntity } from "./table_cards.entity";
+import { TableUsersEntity } from "./table_users.entity";
 
 @Entity('table_decks')
 export class TablesDecksEntity {
     @PrimaryGeneratedColumn()
     id: number;
+
+    // ? New enum column
+    @Column({ type: 'enum', enum: TableDeckType, default: TableDeckType.USER })
+    type: TableDeckType
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;
@@ -17,16 +23,20 @@ export class TablesDecksEntity {
 
     @ManyToOne(() => TablesEntity, (tablesEntity) => tablesEntity.table_decks)
     @JoinColumn({ name: 'table_id' })
-    table_id: TablesEntity;
+    table: TablesEntity;
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_decks, { nullable: true })
     @JoinColumn({ name: 'user_id' })
-    user_id?: UsersEntity;
+    user?: UsersEntity;
 
     @ManyToOne(() => DecksEntity, (decksEntity) => decksEntity.table_deck_id, { nullable: true })
-    @JoinColumn({ name: 'deck_id'})
+    @JoinColumn({ name: 'deck_id' })
     deck?: DecksEntity;
-    
-    @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.table_deck_id)
-    table_cards_id: TablesCardsEntity;
+
+    @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.table_deck)
+    table_cards: TablesCardsEntity[];
+
+    @OneToOne(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table_deck, { nullable: true })
+    @JoinColumn({ name: 'table_user_id' })
+    table_user?: TableUsersEntity
 }

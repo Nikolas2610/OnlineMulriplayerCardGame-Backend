@@ -40,14 +40,14 @@ export class TablesEntity {
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 
-    @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.table_id)
-    table_decks: TablesDecksEntity
+    @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.table)
+    table_decks: TablesDecksEntity[]
 
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.table)
-    ranks: RankEntity
+    ranks: RankEntity[]
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table)
-    table_users: TableUsersEntity
+    table_users: TableUsersEntity[]
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables_game_master)
     game_master: UsersEntity
