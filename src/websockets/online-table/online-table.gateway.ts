@@ -106,7 +106,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const tableGame = await this.onlineTableService.loadTableGame(data.tableId);
     // Update players to table
     this.server.emit('getTableUsers', tableGame);
-    
+
     return response;
   }
 
@@ -185,7 +185,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     await this.onlineTableService.eraseDecksAndCards(table);
 
     this.server.to(room).emit('getStartGameDetails', table, []);
-    
+
     return { message: 'success', status: 200 }
   }
 
@@ -268,7 +268,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     if (response.error) {
       return response
     }
-    
+
     // Return update card
     this.server.to(room).emit('getTableGameStatus', response);
     return { message: 'success', status: 200 }
@@ -296,7 +296,31 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const tableGame = await this.onlineTableService.loadTableGame(data.tableId);
     // Update players to table
     this.server.emit('getTableUsers', tableGame);
-    
+
     return response;
+  }
+
+  @SubscribeMessage('validateTablePassword')
+  async validateTablePassword(
+    @MessageBody('password') password: string,
+    @MessageBody('table') table: TablesEntity,
+  ) {
+    return await this.onlineTableService.validateTablePassword(table, password);
+  }
+
+  @SubscribeMessage('setNextPlayer')
+  async setNextPlayer(
+    @MessageBody('table_users') table_users: TableUsersEntity[],
+    @MessageBody('room') room: string,
+    @MessageBody('next_player') nextPlayer: boolean,
+  ) {
+    const response = await this.onlineTableService.setNextPlayer(table_users, nextPlayer);
+    if (response.error) {
+      return response
+    }
+    
+    // Return update card
+    this.server.to(room).emit('getTurnTableUsers', response);
+    return { message: 'success', status: 200 }
   }
 }

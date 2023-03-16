@@ -17,9 +17,9 @@ import { StatusEntity } from 'src/entities/db/status.entity';
 import { TablesDecksEntity } from 'src/entities/db/table_decks.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 import { DecksEntity } from 'src/entities/db/decks.entity';
-import { CardsEntity } from 'src/entities/db/cards.entity';
 import { HandStartCardsEntity } from 'src/entities/db/hand_start_cards.entity';
 import { TableDeckType } from 'src/table/models/table-deck-type.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class OnlineTableService {
@@ -52,8 +52,8 @@ export class OnlineTableService {
       // Save data
       tableDB.name = table.name;
       tableDB.creator = tableDB.game_master = userDB;
-      tableDB.private = table.private
-      tableDB.password = table.password ? table.password : null;
+      tableDB.private = table.private;
+      tableDB.password = table.password ? await this.hashPassword(table.password) : null;
       tableDB.game = gameDB;
       tableDB.public_url = uuidv4();
 
@@ -62,6 +62,24 @@ export class OnlineTableService {
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error : "Can't create game" }, HttpStatus.BAD_REQUEST);
     }
+  }
+
+  async validateTablePassword(table: TablesEntity, password: string) {
+    try {
+      const isValidPassword = await bcrypt.compare(password, table.password);
+      if (isValidPassword) {
+        return { message: 'success', status: 200 }
+      } else {
+        return { message: 'error', status: 400 }
+      }
+    } catch (error) {
+      return error
+    }
+  }
+
+  // Hash the password
+  async hashPassword(password: string): Promise<string> {
+    return bcrypt.hash(password, 12);
   }
 
   async removeTable(tableId: number): Promise<DeleteResult> {
@@ -483,6 +501,21 @@ export class OnlineTableService {
       return await this.tablesRepository.save(table);
     } catch (error) {
       return error
+    }
+  }
+
+  async setNextPlayer(table_users: TableUsersEntity[], nextPlayer: boolean) {
+    try {
+      const playingIndex = table_users.findIndex(user => user.playing);
+      const nextIndex = nextPlayer ? playingIndex + 1 : playingIndex - 1;
+      const nextPlayingIndex = (nextIndex + table_users.length) % table_users.length;
+
+      table_users.forEach(user => user.playing = false);
+      table_users[nextPlayingIndex].playing = true;
+
+      return await this.tableUsersRepository.save(table_users);
+    } catch (error) {
+      return error;
     }
   }
 }

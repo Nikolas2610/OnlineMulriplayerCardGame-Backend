@@ -10,9 +10,7 @@ import { join } from 'path';
 import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
 import { DeckModule } from './deck/deck.module';
 import { CardModule } from './card/card.module';
-import { HandStartCardsModule } from './hand_start_cards/hand_start_cards.module';
 import { GameModule } from './game/game.module';
-import { RoleModule } from './role/role.module';
 import { TableModule } from './table/table.module';
 import { RankModule } from './rank/rank.module';
 import { EntitiesModule } from './entities/entities.module';
@@ -58,7 +56,7 @@ import { OnlineTableModule } from './websockets/online-table/online-table.module
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
     }),
-    AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule, OnlineTableModule],
+    AuthModule, EmailModule, DeckModule, CardModule, GameModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule, OnlineTableModule],
   controllers: [AppController],
   providers: [AppService,
     {
