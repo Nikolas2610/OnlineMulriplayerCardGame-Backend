@@ -7,6 +7,7 @@ import { UserRegisterDto } from '../dto/user-register.dto';
 import { UserLoginDto } from '../dto/user-login.dto';
 import { ForgotPasswordDto } from '../dto/forgot-password.dto';
 import { Public } from '../guards/public';
+import { GuestRegister } from '../dto/register-guest.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -42,5 +43,11 @@ export class AuthController {
     @Post('logout')
     async logout(@Body('email') email: string): Promise<UpdateResult> {
         return await this.authService.logout(email);
+    }
+
+    @Public()
+    @Post('guest')
+    async registerGuest(@Body() guest: GuestRegister) {
+        return await this.authService.registerGuest(guest);
     }
 }

@@ -15,6 +15,8 @@ import { v4 } from 'uuid';
 import * as crypto from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { UserRegisterDto } from '../dto/user-register.dto';
+import { GuestRegister } from '../dto/register-guest.dto';
+import { Role } from '../models/role.enum';
 
 @Injectable()
 export class AuthService {
@@ -172,5 +174,16 @@ export class AuthService {
 
     async logout(email: string): Promise<UpdateResult> {
         return await this.usersRepository.update({ email }, { refresh_token: null });
+    }
+
+    async registerGuest(guest: GuestRegister) {
+        try {
+            const user = new UsersEntity();
+            user.username = guest.username;
+            user.role = Role.GUEST;
+            return await this.usersRepository.save(user);
+        } catch (error) {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Something went wrong' }, HttpStatus.BAD_REQUEST);
+        }
     }
 }
