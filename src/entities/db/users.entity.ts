@@ -16,10 +16,10 @@ export class UsersEntity {
     @Column({ unique: true, length: 25 })
     username: string;
 
-    @Column({ unique: true, length: 50 })
+    @Column({ unique: true, length: 50, nullable: true })
     email: string;
 
-    @Column({ select: false })
+    @Column({ select: false, nullable: true })
     password: string;
 
     @Column({ nullable: true })
