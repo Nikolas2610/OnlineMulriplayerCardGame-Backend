@@ -21,6 +21,7 @@ import { UserModule } from './user/user.module';
 import { APP_GUARD } from '@nestjs/core';
 import { JwtGuard } from './auth/guards/jwt.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
+import { OnlineTableModule } from './websockets/online-table/online-table.module';
 
 @Module({
   imports: [
@@ -57,7 +58,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
     ServeStaticModule.forRoot({
       rootPath: join(__dirname, '..', 'uploads'),
     }),
-    AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule],
+    AuthModule, EmailModule, DeckModule, CardModule, HandStartCardsModule, GameModule, RoleModule, TableModule, RankModule, EntitiesModule, AdminModule, UserModule, OnlineTableModule],
   controllers: [AppController],
   providers: [AppService,
     {

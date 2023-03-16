@@ -49,7 +49,7 @@ export class UsersEntity {
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.creator)
     tables: GamesEntity
 
-    @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.user_id)
+    @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.user)
     table_decks: TablesDecksEntity
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
@@ -57,4 +57,7 @@ export class UsersEntity {
 
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
     ranks: RankEntity
+
+    @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_master)
+    tables_game_master: TablesEntity
 }

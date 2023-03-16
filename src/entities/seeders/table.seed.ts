@@ -47,7 +47,7 @@ export class TableSeeder {
                 table.password = table.private ? 'tablepass' : '';
                 table.status = this.getRandomEnumValue();
                 table.game = await this.getGameWithDecksAndCards(Math.floor(Math.random() * (games - 1)) + 1);
-                table.creator = users[faker.datatype.number({
+                table.creator = table.game_master = users[faker.datatype.number({
                     min: 1,
                     max: (users.length - 1)
                 })];
@@ -85,18 +85,18 @@ export class TableSeeder {
                 const userTable = new TableUsersEntity();
                 userTable.role = rolePlayer;
                 userTable.user = users[num];
-                userTable.status = 'active'
+                // TODO: Get role to save
+                // userTable.status = 'active'
                 userTable.table = table;
                 userTable.team = null;
                 userTable.turn = counter;
                 userTable.playing = true;
-                userTable.game_master = counter === 1 ? true : false;
                 counter++;
                 await this.tableUsersRepository.save(userTable);
                 // Create deck for the user
                 const userDeck = new TablesDecksEntity();
-                userDeck.user_id = users[num];
-                userDeck.table_id = table;
+                userDeck.user = users[num];
+                userDeck.table = table;
                 await this.tableDecksRepository.save(userDeck);
             } catch (error) {
                 console.log(error);
@@ -110,11 +110,11 @@ export class TableSeeder {
             const game = await this.getGameWithDecksAndCards(table.game.id);
             // Add Empty Deck
             const tableDeck = new TablesDecksEntity();
-            tableDeck.table_id = table;
+            tableDeck.table = table;
             await this.tableDecksRepository.save(tableDeck);
             // Add deck cards to table
             const deck = new TablesDecksEntity();
-            deck.table_id = table;
+            deck.table = table;
             deck.deck = game.deck[0];
             const saveDeck = await this.tableDecksRepository.save(deck);
             // Add Available cards to table
@@ -130,8 +130,8 @@ export class TableSeeder {
                 const deckCard = new TablesCardsEntity();
                 deckCard.hidden = true;
                 deckCard.rotate = 0;
-                deckCard.table_deck_id = tableMainDeck;
-                deckCard.card_id = card;
+                deckCard.table_deck = tableMainDeck;
+                deckCard.card = card;
                 await this.tableCardsRepository.save(deckCard);
             })
         } catch (error) {
