@@ -1,5 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { GamesEntity } from "./games.entity";
+import { TableUsersEntity } from "./table_users.entity";
 
 @Entity('status')
 export class StatusEntity {
@@ -8,7 +9,7 @@ export class StatusEntity {
 
     @Column({ length: 25 })
     name: string;
-
+    // ? Remove description 
     // @Column({ length: 1000 })
     // description: string;
 
@@ -21,4 +22,7 @@ export class StatusEntity {
     @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.status)
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
+
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.status)
+    table_user: TableUsersEntity
 }

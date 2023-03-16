@@ -27,7 +27,7 @@ export class CardsEntity {
     @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.cards)
     deck: DecksEntity[]
 
-    @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.card_id)
+    @OneToMany(() => TablesCardsEntity, (tablesCardsEntity) => tablesCardsEntity.card)
     table_cards_id: TablesCardsEntity
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.cards, { onDelete: 'SET NULL' })

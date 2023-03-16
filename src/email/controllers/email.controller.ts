@@ -16,7 +16,6 @@ export class EmailController {
     @Public()
     @Post('plain-html-email')
     async plainHTMLEmail(@Body() payload) {
-        console.log(payload)
         return await this.emailService.plainHTMLEmail(payload);
     }
 }

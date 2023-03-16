@@ -1,6 +1,6 @@
 export enum TableStatus {
-    CLOSE = 'close',
-    PLAYING = 'playing',
     WAITING = 'waiting',
+    PLAYING = 'playing',
+    PAUSE = 'pause',
     FINISH = 'finish'
 }
