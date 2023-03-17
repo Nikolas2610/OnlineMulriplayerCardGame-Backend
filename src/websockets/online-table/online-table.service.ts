@@ -288,8 +288,9 @@ export class OnlineTableService {
       // Create table user decks
       const createTableUserDecksPromises = table.table_users.map(async user => {
         if (!user.role) {
-          if (table.game.roles[1]) {
-            user.role = table.game.roles[1];
+          const role = table.game.roles.find(r => r.name === 'Player');
+          if (role) {
+            user.role = role;
             await this.tableUsersRepository.save(user)
           }
         }
@@ -474,14 +475,17 @@ export class OnlineTableService {
         }));
         await this.tableDecksRepository.delete(deck.id);
       }));
+
+      tableDB.status = TableStatus.FINISH;
+      return await this.tablesRepository.save(tableDB);
     } catch (error) {
       return error
     }
   }
 
-  async updateCardPosition(cards: TablesCardsEntity[]) {
+  async updateCard(card: TablesCardsEntity) {
     try {
-      return await this.tableCardsRepository.save(cards);
+      return await this.tableCardsRepository.save(card);
     } catch (error) {
       return error
     }
@@ -514,6 +518,18 @@ export class OnlineTableService {
       table_users[nextPlayingIndex].playing = true;
 
       return await this.tableUsersRepository.save(table_users);
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async shuffleDeck(tableDeckId: number) {
+    try {
+      const tableDeck = await this.tableDecksRepository.findOne({
+        where: {id: new EqualOperator(tableDeckId)},
+        relations: ['table_cards', 'table_cards.table_deck', 'table_cards.card']
+      });
+      return await this.shuffleCards(tableDeck.table_cards, [tableDeckId]);
     } catch (error) {
       return error;
     }
