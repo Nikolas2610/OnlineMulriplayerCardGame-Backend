@@ -20,22 +20,18 @@ import { TableStatus } from 'src/table/models/table-status.enum';
     origin: '*'
   }
 })
-export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer()
   server: Server;
 
   constructor(private readonly onlineTableService: OnlineTableService) { }
 
   handleConnection(client: any, ...args: any[]) {
-    console.log("Client connect: ", client.id);
-  }
-
-  afterInit(server: any) {
-
+    console.log('\x1b[32m%s\x1b[0m', "Client connect: " + client.id);
   }
 
   async handleDisconnect(client: any) {
-    console.log("Client disconnected: ", client.id);
+    console.log('\x1b[31m%s\x1b[0m', "Client disconnected: " + client.id);
     const response = await this.onlineTableService.disconnectUser(client.id);
 
     if (response) {
@@ -182,8 +178,8 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('room') room: string,
   ) {
     // Remove previous cards if exists
-    await this.onlineTableService.eraseDecksAndCards(table);
-
+    const response = await this.onlineTableService.eraseDecksAndCards(table);
+    // TODO: fix table status response
     this.server.to(room).emit('getStartGameDetails', table, []);
 
     return { message: 'success', status: 200 }
@@ -230,17 +226,19 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     return { message: 'success', status: 200 }
   }
 
-  @SubscribeMessage('updateCardPosition')
-  async updateCardPosition(
-    @MessageBody('cards') cards: TablesCardsEntity[],
+  @SubscribeMessage('updateCard')
+  async updateCard(
+    @MessageBody('card') card: TablesCardsEntity,
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.updateCardPosition(cards);
+    const response = await this.onlineTableService.updateCard(card);
+
     if (response.error) {
       return response
     }
     // Return update card
-    this.server.to(room).emit('getUpdateCardPosition', response);
+    this.server.to(room).emit('getUpdateCard', response);
+
     return { message: 'success', status: 200 }
   }
 
@@ -318,9 +316,25 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     if (response.error) {
       return response
     }
-    
+
     // Return update card
     this.server.to(room).emit('getTurnTableUsers', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
+  }
+
+  @SubscribeMessage('shuffleDeck')
+  async shuffleDeck(
+    @MessageBody('table_deck_id') tableDeckId: number,
+    @MessageBody('room') room: string,
+  ) {
+    const response = await this.onlineTableService.shuffleDeck(tableDeckId);
+    console.log(response);
+    
+    if (response.error) {
+      return response
+    }
+
+    this.server.to(room).emit('getShuffleDeck', response);
+    return { message: 'success', status: 200 };
   }
 }
