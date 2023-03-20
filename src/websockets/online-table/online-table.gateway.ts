@@ -196,7 +196,11 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     }
 
     this.server.to(room).emit('exitUsersFromTable');
-    this.server.socketsLeave(room);
+    const roomSockets = await this.server.in(room).fetchSockets();
+    for (const socket of roomSockets) {
+      socket.leave(room);
+    }
+    // this.server.socketsLeave(room);
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(table.id);
     // Update players to table
@@ -228,6 +232,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
 
   @SubscribeMessage('updateCard')
   async updateCard(
+    @ConnectedSocket() client: Socket,
     @MessageBody('card') card: TablesCardsEntity,
     @MessageBody('room') room: string,
   ) {
@@ -237,7 +242,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
       return response
     }
     // Return update card
-    this.server.to(room).emit('getUpdateCard', response);
+    client.to(room).except(client.id).emit('getUpdateCard', response);
 
     return { message: 'success', status: 200 }
   }
