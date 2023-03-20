@@ -20,11 +20,18 @@ import { TableStatus } from 'src/table/models/table-status.enum';
     origin: '*'
   }
 })
-export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
   @WebSocketServer()
   server: Server;
 
   constructor(private readonly onlineTableService: OnlineTableService) { }
+
+  // ? For debug
+  afterInit() {
+    setInterval(() => {
+      console.log(this.server.sockets.adapter.rooms)
+    }, 30000);
+  }
 
   handleConnection(client: any, ...args: any[]) {
     console.log('\x1b[32m%s\x1b[0m', "Client connect: " + client.id);
@@ -194,13 +201,13 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     if (response.error) {
       return response
     }
-
     this.server.to(room).emit('exitUsersFromTable');
+    
     const roomSockets = await this.server.in(room).fetchSockets();
     for (const socket of roomSockets) {
       socket.leave(room);
     }
-    // this.server.socketsLeave(room);
+    
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(table.id);
     // Update players to table
