@@ -13,6 +13,7 @@ import { StatusEntity } from 'src/entities/db/status.entity';
 import { TablesEntity } from 'src/entities/db/tables.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 import { TableStatus } from 'src/table/models/table-status.enum';
+import { Message } from './dto/Message.dto';
 
 
 @WebSocketGateway({
@@ -202,12 +203,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
       return response
     }
     this.server.to(room).emit('exitUsersFromTable');
-    
+
     const roomSockets = await this.server.in(room).fetchSockets();
     for (const socket of roomSockets) {
       socket.leave(room);
     }
-    
+
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(table.id);
     // Update players to table
@@ -341,12 +342,21 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     const response = await this.onlineTableService.shuffleDeck(tableDeckId);
     console.log(response);
-    
+
     if (response.error) {
       return response
     }
 
     this.server.to(room).emit('getShuffleDeck', response);
+    return { message: 'success', status: 200 };
+  }
+
+  @SubscribeMessage('sendMessage')
+  async sendMessage(
+    @MessageBody('data') data: Message,
+  ) {
+    const response = { ...data, created_at: new Date() }
+    this.server.to(data.room).emit('getSendMessage', response);
     return { message: 'success', status: 200 };
   }
 }
