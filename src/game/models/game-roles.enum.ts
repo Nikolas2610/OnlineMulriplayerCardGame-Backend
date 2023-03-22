@@ -1,4 +1,4 @@
-export enum GameStandartRoles {
+export enum GameStandardRoles {
     TABLE = 'table',
     PLAYER = 'player'
 }

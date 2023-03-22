@@ -1,4 +1,5 @@
 import { IsBoolean, IsNotEmpty, IsNumber } from "class-validator";
+import { HandStartCardsRuleType } from "./HandStartCardsRuleType.enum";
 
 export class CreateHandStartCards {
     @IsNotEmpty()
@@ -11,13 +12,16 @@ export class CreateHandStartCards {
 
     @IsNotEmpty()
     @IsNumber()
-    role: number;
+    role: number | null;
 
     @IsNotEmpty()
     @IsBoolean()
     hidden: boolean;
 
     @IsNotEmpty()
+    type: HandStartCardsRuleType
+
+    @IsNotEmpty()
     @IsNumber()
-    repeat: number;
+    toDeck: number | null;
 }

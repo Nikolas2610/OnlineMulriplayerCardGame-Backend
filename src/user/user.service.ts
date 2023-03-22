@@ -4,6 +4,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { table } from 'console';
 import { User } from 'src/admin/dto/user.dto';
 import { AuthService } from 'src/auth/services/auth.service';
+import { DeckType } from 'src/deck/services/models/DeckType.enum';
 import { CardsEntity } from 'src/entities/db/cards.entity';
 import { DecksEntity } from 'src/entities/db/decks.entity';
 import { GamesEntity } from 'src/entities/db/games.entity';
@@ -31,7 +32,7 @@ export class UserService {
     @InjectRepository(TablesEntity)
     private readonly tablesRepository: Repository<TablesEntity>,
     @InjectRepository(HandStartCardsEntity)
-    private readonly handStartCardsRepository: Repository<HandStartCardsEntity>, 
+    private readonly handStartCardsRepository: Repository<HandStartCardsEntity>,
     private readonly gameService: GameService
   ) { }
 
@@ -64,8 +65,8 @@ export class UserService {
     if (!userExists) {
       throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'User does not exist' }, HttpStatus.UNAUTHORIZED);
     }
-    const newPassowrd = await this.authService.hashPassword(password.new_password);
-    return await this.usersRepository.update(user.id, { password: newPassowrd });
+    const newPassword = await this.authService.hashPassword(password.new_password);
+    return await this.usersRepository.update(user.id, { password: newPassword });
   }
 
   // Games Section
@@ -103,7 +104,7 @@ export class UserService {
   async getAllDecks(user: User): Promise<DecksEntity[]> {
     return await this.decksRepository.find(
       {
-        where: { creator: new EqualOperator(user.id) },
+        where: { creator: new EqualOperator(user.id), type: DeckType.DECK },
         relations: ['cards']
       }
     )
@@ -113,7 +114,7 @@ export class UserService {
     const games = await this.gamesRepository.find(
       {
         where: { creator: new EqualOperator(user.id) },
-        relations: ['roles', 'hand_start_cards', 'hand_start_cards.role', 'hand_start_cards.deck', 'teams', 'status', 'deck']
+        relations: ['roles', 'hand_start_cards', 'hand_start_cards.role', 'hand_start_cards.deck', 'hand_start_cards.toDeck', 'teams', 'status', 'deck']
       }
     )
     return games;

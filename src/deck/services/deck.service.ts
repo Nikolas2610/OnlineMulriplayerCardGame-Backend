@@ -6,6 +6,7 @@ import { UsersEntity } from 'src/entities/db/users.entity';
 import { DeleteResult, getConnection, Repository } from 'typeorm';
 import { CreateDeck } from '../dto/CreateDeck.dto';
 import { DeckReturn } from './models/deck.return.model';
+import { DeckType } from './models/DeckType.enum';
 
 @Injectable()
 export class DeckService {
@@ -13,7 +14,7 @@ export class DeckService {
         @InjectRepository(DecksEntity)
         private readonly decksRepository: Repository<DecksEntity>,
         @InjectRepository(UsersEntity)
-        private readonly usersReposiroty: Repository<UsersEntity>,
+        private readonly usersRepository: Repository<UsersEntity>,
     ) {
     }
 
@@ -21,9 +22,12 @@ export class DeckService {
         try {
             const decks = await this.decksRepository
                 .createQueryBuilder('decks')
-                .leftJoinAndSelect("decks.creator", "user")
-                .where("user.id = :userId", { userId: user.id })
-                .orWhere("decks.private = :private", { private: false })
+                .leftJoinAndSelect('decks.creator', 'user')
+                .where('(user.id = :userId OR decks.private = :private) AND decks.type = :deckType', {
+                    userId: user.id,
+                    private: false,
+                    deckType: DeckType.DECK,
+                })
                 .getMany();
             if (decks.length === 0) {
                 throw new HttpException({ status: HttpStatus.NOT_FOUND, message: 'No decks found' }, HttpStatus.NOT_FOUND);
@@ -33,7 +37,7 @@ export class DeckService {
                     id: deck.id,
                     name: deck.name,
                     private: deck.private,
-                    creator: deck.creator.username
+                    creator: deck.creator?.username
                 }
             });
             return modifiedDecks;
@@ -43,7 +47,7 @@ export class DeckService {
     }
 
     async createDeck(user: User, deck: CreateDeck): Promise<DecksEntity> {
-        const userDB = await this.usersReposiroty.findOne({ where: { id: user.id } });
+        const userDB = await this.usersRepository.findOne({ where: { id: user.id } });
         const deckDB = new DecksEntity();
         deckDB.name = deck.name;
         deckDB.private = deck.private;

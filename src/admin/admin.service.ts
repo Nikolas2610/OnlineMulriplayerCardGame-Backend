@@ -14,6 +14,7 @@ import * as sharp from 'sharp';
 import { TableUsersEntity } from 'src/entities/db/table_users.entity';
 import { TablesDecksEntity } from 'src/entities/db/table_decks.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
+import { DeckType } from 'src/deck/services/models/DeckType.enum';
 
 @Injectable()
 export class AdminService {
@@ -39,13 +40,17 @@ export class AdminService {
   async getDashboardDetails(): Promise<{ tables: number, games: number, decks: number, cards: number }> {
     const tables = await this.tablesRepository.count();
     const games = await this.gamesRepository.count();
-    const decks = await this.decksRepository.count();
+    const decks = await this.decksRepository.count({ where: { type: DeckType.DECK } });
     const cards = await this.cardsRepository.count();
     return { tables, games, decks, cards };
   }
 
   async findAllUsers() {
-    const users = await this.usersRepository.find();
+    const users = await this.usersRepository.find({
+      order: {
+        created_at: 'DESC'
+      }
+    });
     // Remove refresh token 
     Object.values(users).forEach(user => delete user.refresh_token);
     return users;
@@ -66,7 +71,13 @@ export class AdminService {
   }
 
   findAllDecks() {
-    return this.decksRepository.find({ relations: ['cards'] })
+    return this.decksRepository.find({
+      where: { type: DeckType.DECK },
+      relations: ['cards'],
+      order: {
+        created_at: 'DESC'
+      }
+    })
   }
 
   async editDeck(deck: DecksEntity) {
@@ -86,20 +97,33 @@ export class AdminService {
         'hand_start_cards',
         'hand_start_cards.role',
         'hand_start_cards.deck',
+        'hand_start_cards.toDeck',
         'teams',
         'status',
         'deck'
-      ]
+      ],
+      order: {
+        created_at: 'DESC'
+      }
     });
     return games;
   }
 
   async findAllTables() {
-    return await this.tablesRepository.find({ relations: ['game'] });
+    return await this.tablesRepository.find({
+      relations: ['game'],
+      order: {
+        created_at: 'DESC'
+      }
+    });
   }
 
   async findAllCards() {
-    return await this.cardsRepository.find();
+    return await this.cardsRepository.find({
+      order: {
+        created_at: 'DESC'
+      }
+    });
   }
 
   async updateTable(table: TablesEntity) {
@@ -189,19 +213,19 @@ export class AdminService {
     try {
       const users = await this.tableUsersRepository.find({ where: { table: new EqualOperator(id) } });
       const decks = await this.tableDecksRepository.find({ where: { table: new EqualOperator(id) } });
-  
+
       // Delete cards for each deck
       for (const deck of decks) {
-        const cards = await this.tableCardsRepository.find({ where: { table_deck: new EqualOperator(deck.id )} });
+        const cards = await this.tableCardsRepository.find({ where: { table_deck: new EqualOperator(deck.id) } });
         const cardPromises = cards.map(card => this.tableCardsRepository.delete(card.id));
         await Promise.all(cardPromises);
         await this.tableDecksRepository.delete(deck.id);
       }
-  
+
       // Delete users
       const userPromises = users.map(user => this.tableUsersRepository.delete(user.id));
       await Promise.all(userPromises);
-  
+
       return { success: true };
     } catch (error) {
       throw new HttpException({ status: HttpStatus.BAD_REQUEST, error }, HttpStatus.BAD_REQUEST);

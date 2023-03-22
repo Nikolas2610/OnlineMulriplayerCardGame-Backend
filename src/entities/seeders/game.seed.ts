@@ -5,10 +5,11 @@ import { UsersEntity } from "src/entities/db/users.entity";
 import { EqualOperator, Repository } from "typeorm";
 import { DecksEntity } from "../db/decks.entity";
 import { RolesEntity } from "../db/roles.entity";
-import { GameStandartRoles } from "src/game/models/game-roles.enum";
+import { GameStandardRoles } from "src/game/models/game-roles.enum";
 import { TeamsEntity } from "../db/teams.entity";
 import { StatusEntity } from "../db/status.entity";
 import { HandStartCardsEntity } from "../db/hand_start_cards.entity";
+import { DeckType } from "src/deck/services/models/DeckType.enum";
 
 export class GameSeeder {
     constructor(
@@ -36,7 +37,7 @@ export class GameSeeder {
         // Get all users
         const users = await this.usersRepository.find();
         // Get all Decks
-        const decks = await this.decksRepository.find();
+        const decks = await this.decksRepository.find({ where: { type: DeckType.DECK } });
 
         for (let index = 1; index < games; index++) {
             try {
@@ -66,7 +67,7 @@ export class GameSeeder {
                 await this.addRoles(game);
                 await this.addStatus(game);
                 await this.addTeams(game);
-                await this.addStarterCardsRules(game); 
+                await this.addStarterCardsRules(game);
             } catch (error) {
                 console.log(error);
             }
@@ -77,7 +78,6 @@ export class GameSeeder {
         const roles = await this.rolesRepository.find({ where: { game: new EqualOperator(game.id) } });
         roles.forEach(async role => {
             const rule = new HandStartCardsEntity();
-            rule.repeat = role.name === 'table' ? 1 : 7;
             rule.count_cards = 1;
             rule.hidden = role.name === 'table' ? false : true;
             rule.game = game;
@@ -127,14 +127,14 @@ export class GameSeeder {
     }
 
     async addRoles(game: GamesEntity) {
-        await this.addRole(GameStandartRoles.TABLE, game);
+        await this.addRole(GameStandardRoles.TABLE, game);
         // TODO: after complete add "game.extra_roles"
         if (false) {
             for (let index = 0; index < 2; index++) {
                 await this.addRole(faker.name.firstName(), game);
             }
         } else {
-            await this.addRole(GameStandartRoles.PLAYER, game);
+            await this.addRole(GameStandardRoles.PLAYER, game);
         }
     }
 
