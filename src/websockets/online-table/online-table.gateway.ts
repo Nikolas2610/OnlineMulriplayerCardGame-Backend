@@ -341,13 +341,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('room') room: string,
   ) {
     const response = await this.onlineTableService.shuffleDeck(tableDeckId);
-    console.log(response);
 
     if (response.error) {
       return response
     }
 
-    this.server.to(room).emit('getShuffleDeck', response);
+    this.server.to(room).emit('getShuffleDeck', response, tableDeckId);
     return { message: 'success', status: 200 };
   }
 

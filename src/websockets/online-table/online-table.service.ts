@@ -20,6 +20,8 @@ import { DecksEntity } from 'src/entities/db/decks.entity';
 import { HandStartCardsEntity } from 'src/entities/db/hand_start_cards.entity';
 import { TableDeckType } from 'src/table/models/table-deck-type.enum';
 import * as bcrypt from 'bcrypt';
+import { HandStartCardsRuleType } from 'src/game/models/relation/hand-start-cards/HandStartCardsRuleType.enum';
+import { DeckType } from 'src/deck/services/models/DeckType.enum';
 
 @Injectable()
 export class OnlineTableService {
@@ -302,26 +304,28 @@ export class OnlineTableService {
       });
       const tableUserDecks = await Promise.all(createTableUserDecksPromises);
       table.table_decks.push(...tableUserDecks);
-      // Create table decks for the decks
+      // Create table decks for the decks and extra decks
       const createTableDecksPromises = table.game.deck.map(async deck => {
+
         const tableDeck = new TablesDecksEntity();
         tableDeck.deck = deck;
-        tableDeck.type = TableDeckType.DECK;
+        // Determine the type of the table deck based on the deck's type and name
+        let type = TableDeckType.DECK;
+        if (deck.type !== DeckType.DECK) {
+          const deckName = deck.name.toLowerCase();
+          if (deckName === TableDeckType.TABLE) {
+            type = TableDeckType.TABLE;
+          }
+          else if (deckName === TableDeckType.JUNK) {
+            type = TableDeckType.JUNK;
+          }
+        }
+        tableDeck.type = type;
         tableDeck.table = tableDB;
         return await this.tableDecksRepository.save(tableDeck);
       });
       const tableDecks = await Promise.all(createTableDecksPromises);
       table.table_decks.push(...tableDecks);
-      // Create table deck for the table
-      const tableDeck = new TablesDecksEntity();
-      tableDeck.table = tableDB;
-      tableDeck.type = TableDeckType.TABLE;
-      table.table_decks.push(await this.tableDecksRepository.save(tableDeck));
-      // Create table deck for the junk cards 
-      const junkTableDeck = new TablesDecksEntity();
-      junkTableDeck.table = tableDB;
-      junkTableDeck.type = TableDeckType.JUNK;
-      table.table_decks.push(await this.tableDecksRepository.save(junkTableDeck));
       // Update the table
       return await this.tablesRepository.save(table);
     } catch (error) {
@@ -333,7 +337,7 @@ export class OnlineTableService {
     try {
       const tableDecks: number[] = [];
       const promises = table.table_decks.map(async (deck) => {
-        if (deck.deck) {
+        if (deck.deck?.type === DeckType.DECK) {
           tableDecks.push(deck.id);
           const deckDB = await this.decksRepository.findOne({ where: { id: new EqualOperator(deck.deck.id) }, relations: ['cards'] })
           return Promise.all(deckDB.cards.map(async (card, index) => {
@@ -379,9 +383,10 @@ export class OnlineTableService {
 
   async setStartCards(table: TablesEntity, cards: TablesCardsEntity[]) {
     try {
-      const handStartCardsRules = await this.handStartCardsRepository.find({
-        where: { game: new EqualOperator(table.game.id) },
-        relations: ['role', 'deck']
+      // Set start cards for hand start cards with type role
+      const handStartCardsRolesRules = await this.handStartCardsRepository.find({
+        where: { game: new EqualOperator(table.game.id), type: HandStartCardsRuleType.ROLE },
+        relations: ['role', 'deck'],
       });
       const tableDecks = await this.tableDecksRepository.find({
         where: { table: new EqualOperator(table.id) },
@@ -391,12 +396,12 @@ export class OnlineTableService {
       for (const deck of tableDecks) {
         let width = 0;
         let height = 0;
-        if (deck.type === TableDeckType.USER) {
-          const rules = handStartCardsRules.filter(rule => rule.role.id === deck.table_user?.role?.id);
+        if (deck.type.toLowerCase() === TableDeckType.USER) {
+          const rules = handStartCardsRolesRules.filter(rule => rule.role.id === deck.table_user?.role?.id);
           if (rules) {
             for (const rule of rules) {
               const ruleTableDeck = tableDecks.find(d => d.deck?.id === rule.deck.id);
-              const countCards = rule.count_cards * rule.repeat;
+              const countCards = rule.count_cards;
               let addCards = 0;
               for (const card of cards) {
                 if (card.table_deck.id === ruleTableDeck.id) {
@@ -421,23 +426,39 @@ export class OnlineTableService {
         }
       }
 
-      // Set start cards for table deck
-      const rule = handStartCardsRules.find(r => r.role.name === 'Table');
-      if (rule) {
-        const ruleTableDeck = tableDecks.find(d => d.deck?.id === rule.deck.id);
-        const countCards = rule.count_cards * rule.repeat;
-        let addCards = 0;
-        // ? previous code:  d.table?.id === table.id && d.user === null && d.deck === null
-        const tableOfTableDeck = tableDecks.find(d => d.type === TableDeckType.JUNK);
-        for (const card of cards) {
-          if (card.table_deck.id === ruleTableDeck.id) {
-            card.table_deck = tableOfTableDeck;
-            addCards++;
+      // Set start cards for hand start cards with type deck
+      const handStartCardsDeckRules = await this.handStartCardsRepository.find({
+        where: { game: new EqualOperator(table.game.id), type: HandStartCardsRuleType.DECK },
+        relations: ['role', 'deck', 'toDeck'],
+      });
+      if (handStartCardsDeckRules) {
+        let width = 0;
+        let height = 0;
+        await Promise.all(handStartCardsDeckRules.map(async rule => {
+          const fromTableDeck = tableDecks.find(d => d.deck?.id === rule.deck?.id);
+          const toTableDeck = tableDecks.find(d => d.deck?.id === rule.toDeck?.id);
+          let addCards = 0;
+          const countCards = rule.count_cards;
+          for (const card of cards) {
+            if (card.table_deck.id === fromTableDeck.id) {
+              card.table_deck = toTableDeck;
+              card.hidden = rule.hidden;
+              addCards++;
+              if (toTableDeck.type === TableDeckType.TABLE) {
+                card.position_x = height;
+                card.position_y = width;
+                width = width + 50;
+                if (width >= 800) {
+                  width = 0;
+                  height = height + 75;
+                }
+              }
+            }
+            if (addCards >= countCards) {
+              break;
+            }
           }
-          if (addCards >= countCards) {
-            break;
-          }
-        }
+        }));
       }
 
       return await this.tableCardsRepository.save(cards);
@@ -526,7 +547,7 @@ export class OnlineTableService {
   async shuffleDeck(tableDeckId: number) {
     try {
       const tableDeck = await this.tableDecksRepository.findOne({
-        where: {id: new EqualOperator(tableDeckId)},
+        where: { id: new EqualOperator(tableDeckId) },
         relations: ['table_cards', 'table_cards.table_deck', 'table_cards.card']
       });
       return await this.shuffleCards(tableDeck.table_cards, [tableDeckId]);

@@ -1,6 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/admin/dto/user.dto';
+import { DeckType } from 'src/deck/services/models/DeckType.enum';
 import { DecksEntity } from 'src/entities/db/decks.entity';
 import { GamesEntity } from 'src/entities/db/games.entity';
 import { HandStartCardsEntity } from 'src/entities/db/hand_start_cards.entity';
@@ -8,17 +9,18 @@ import { RolesEntity } from 'src/entities/db/roles.entity';
 import { StatusEntity } from 'src/entities/db/status.entity';
 import { TeamsEntity } from 'src/entities/db/teams.entity';
 import { UsersEntity } from 'src/entities/db/users.entity';
-import { Repository } from 'typeorm';
+import { EqualOperator, Repository } from 'typeorm';
 import { CreateGame } from './models/create-game.dto';
 import { GameReturn } from './models/game.return.model';
+import { CreateExtraDeck } from './models/relation/create-extra-deck';
 import { CreateHandStartCards } from './models/relation/hand-start-cards/create-hand-start-cards.interface';
+import { HandStartCardsRuleType } from './models/relation/hand-start-cards/HandStartCardsRuleType.enum';
 import { CreateRole } from './models/relation/role/create-role.interface';
 import { CreateStatus } from './models/relation/status/create-status.interface';
 import { CreateTeam } from './models/relation/team/create-team.interface';
 
 @Injectable()
 export class GameService {
-    private defaultRoles: CreateRole[] = [{ name: 'Table' }, { name: 'Player' }];
 
     constructor(
         @InjectRepository(GamesEntity)
@@ -53,11 +55,20 @@ export class GameService {
         }
     }
 
-    async saveMoreSettings(game: GamesEntity, status: CreateStatus[], teams: CreateTeam[], roles: CreateRole[]) {
+    async saveMoreSettings(game: GamesEntity, status: CreateStatus[], teams: CreateTeam[], roles: CreateRole[], extraDecks: CreateExtraDeck[], user: User) {
         try {
             game.roles = await this.createRoles(roles);
             game.status = await this.createStatus(status);
             game.teams = await this.createTeams(teams);
+            if (extraDecks.length > 0) {
+                const extraDecksDBResults = await Promise.all(await this.createExtraDecks(extraDecks, user));
+                if (!game.deck) {
+                    game.deck = [];
+                }
+                extraDecksDBResults.forEach(extraDecksDB => {
+                    game.deck.push(extraDecksDB);
+                });
+            }
             return await this.gameRepository.save(game);
         } catch (error) {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error.message : "Can't create role" }, HttpStatus.BAD_REQUEST);
@@ -79,13 +90,17 @@ export class GameService {
         return await this.gameRepository.save(game);
     }
 
-    async updateMoreSettings(game: GamesEntity, roles: CreateRole[], teams: CreateTeam[], status: CreateStatus[]) {
+    async updateMoreSettings(game: GamesEntity, roles: CreateRole[], teams: CreateTeam[], status: CreateStatus[], extraDecks: CreateExtraDeck[], user: User) {
         try {
+            // Delete game relations
             await this.deleteRelations(game);
-            game.roles = await this.createRoles(roles);
-            game.teams = await this.createTeams(teams);
-            game.status = await this.createStatus(status);
-            return await this.gameRepository.save(game);
+            // Get the new game
+            const gameDB = await this.gameRepository.findOne({
+                where: { id: new EqualOperator(game.id) },
+                relations: ['deck']
+            });
+            // Update the game
+            return await this.saveMoreSettings(gameDB, status, teams, roles, extraDecks, user);
         } catch (error) {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error.message : "Can't update more settings" }, HttpStatus.BAD_REQUEST);
         }
@@ -125,20 +140,32 @@ export class GameService {
         try {
             const promises = [];
             if (game.hand_start_cards) {
-                promises.push(this.emptyHandStartCard(game.hand_start_cards));
+                promises.push(await this.emptyHandStartCard(game.hand_start_cards));
             }
+            promises.push(await this.emptyExtraDecks(game.deck))
             if (game.roles) {
-                promises.push(this.emptyRoles(game.roles));
+                promises.push(await this.emptyRoles(game.roles));
             }
             if (game.teams) {
-                promises.push(this.emptyTeams(game.teams));
+                promises.push(await this.emptyTeams(game.teams));
             }
             if (game.status) {
-                promises.push(this.emptyStatus(game.status));
+                promises.push(await this.emptyStatus(game.status));
             }
             await Promise.all(promises);
         } catch (error) {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error.message : "Can't delete relations" }, HttpStatus.BAD_REQUEST);
+        }
+    }
+
+    async emptyExtraDecks(decks: DecksEntity[]) {
+        try {
+            const deletePromises = decks
+                .filter(deck => deck.type === DeckType.EXTRA_DECK)
+                .map(deck => this.deckRepository.delete(deck.id));
+            await Promise.all(deletePromises);
+        } catch (error) {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error.message : "Can't delete extra decks" }, HttpStatus.BAD_REQUEST);
         }
     }
 
@@ -170,10 +197,8 @@ export class GameService {
                 const res = await this.roleRepository.delete(item.id);
                 return res
             });
-
             await Promise.all(promises);
         } catch (error) {
-            console.error("ERROR")
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error.message : "Can't delete role" }, HttpStatus.BAD_REQUEST);
         }
     }
@@ -271,15 +296,40 @@ export class GameService {
         }
     }
 
+    async createExtraDecks(extraDecks: CreateExtraDeck[], user: User): Promise<DecksEntity[]> {
+        try {
+            const userDB = await this.userRepository.findOne({ where: { id: user.id } })
+            const promises = extraDecks.map(async (deck) => {
+                const deckDB = new DecksEntity();
+                deckDB.name = deck.name;
+                deckDB.type = DeckType.EXTRA_DECK;
+                deckDB.creator = userDB;
+                deckDB.private = true;
+                return await this.deckRepository.save(deckDB);
+            })
+            return Promise.all(promises);
+        } catch (error) {
+            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: process.env.NODE_ENV === 'development' ? error : "Can't create extra decks" }, HttpStatus.BAD_REQUEST);
+        }
+    }
+
     async createStartHandCards(hand_start_cards: CreateHandStartCards[], game: GamesEntity): Promise<HandStartCardsEntity[]> {
         try {
-            const promises = hand_start_cards.map(async item => {
+            const promises = hand_start_cards.map(async rule => {
                 const hand_start_cardsDB = new HandStartCardsEntity();
-                hand_start_cardsDB.count_cards = item.count_cards;
-                hand_start_cardsDB.hidden = item.hidden;
-                hand_start_cardsDB.repeat = item.repeat;
-                hand_start_cardsDB.deck = game.deck[item.deck];
-                hand_start_cardsDB.role = game.roles[item.role];
+                // Different settings for each hand start cards rule
+                if (rule.type === HandStartCardsRuleType.ROLE) {
+                    hand_start_cardsDB.role = game.roles.find(role => role.id === rule.role);
+                    hand_start_cardsDB.toDeck = null;
+                } else {
+                    hand_start_cardsDB.role = null;
+                    hand_start_cardsDB.toDeck = game.deck.find(deck => deck.id === rule.toDeck);
+                }
+                // Default settings for each hand start cards rule
+                hand_start_cardsDB.deck = game.deck.find(deck => deck.id === rule.deck);
+                hand_start_cardsDB.type = rule.type;
+                hand_start_cardsDB.count_cards = rule.count_cards;
+                hand_start_cardsDB.hidden = rule.hidden;
                 return await this.handStartCardsRepository.save(hand_start_cardsDB);
             })
             return Promise.all(promises);

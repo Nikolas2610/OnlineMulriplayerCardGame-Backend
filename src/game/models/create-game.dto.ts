@@ -2,7 +2,7 @@ import { IsBoolean, IsEmpty, IsNotEmpty, IsNumber, IsString, Max, MaxLength, Min
 
 export class CreateGame {
     @IsNotEmpty()
-    @MinLength(4)
+    @MinLength(3)
     @MaxLength(25)
     @IsString()
     name: string;

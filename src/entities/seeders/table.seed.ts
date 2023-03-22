@@ -25,8 +25,6 @@ export class TableSeeder {
         private readonly tableUsersRepository: Repository<TableUsersEntity>,
         @InjectRepository(TablesDecksEntity)
         private readonly tableDecksRepository: Repository<TablesDecksEntity>,
-        @InjectRepository(DecksEntity)
-        private readonly decksRepository: Repository<DecksEntity>,
         @InjectRepository(TablesCardsEntity)
         private readonly tableCardsRepository: Repository<TablesCardsEntity>,
     ) {

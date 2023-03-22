@@ -4,6 +4,6 @@ export class CreateTeam {
     @IsNotEmpty()
     @IsString()
     @MaxLength(25)
-    @MinLength(3)
+    @MinLength(1)
     name: string;
 }
