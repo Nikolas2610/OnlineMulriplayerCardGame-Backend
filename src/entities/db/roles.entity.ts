@@ -23,11 +23,11 @@ export class RolesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.roles)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.roles, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 
-    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.role)
+    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.role, { onDelete: 'CASCADE' })
     hand_start_deck_id: HandStartCardsEntity
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.role)

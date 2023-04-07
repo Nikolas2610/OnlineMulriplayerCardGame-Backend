@@ -32,11 +32,11 @@ export class HandStartCardsEntity {
     @JoinColumn({ name: 'to_deck_id' })
     toDeck: DecksEntity
 
-    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.hand_start_deck_id)
+    @ManyToOne(() => RolesEntity, (rolesEntity) => rolesEntity.hand_start_deck_id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'role_id' })
     role: RolesEntity
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.hand_start_cards)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.hand_start_cards, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 }

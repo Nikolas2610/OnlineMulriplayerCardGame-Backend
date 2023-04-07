@@ -51,10 +51,10 @@ export class GamesEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @OneToMany(() => RolesEntity, (rolesEntity) => rolesEntity.game)
+    @OneToMany(() => RolesEntity, (rolesEntity) => rolesEntity.game, { cascade: true })
     roles: RolesEntity[]
 
-    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.game)
+    @OneToMany(() => HandStartCardsEntity, (handStartCardsEntity) => handStartCardsEntity.game, { cascade: true })
     hand_start_cards: HandStartCardsEntity[]
 
     @ManyToMany(() => DecksEntity, (decksEntity) => decksEntity.games, { onDelete: 'CASCADE' })
@@ -67,9 +67,9 @@ export class GamesEntity {
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game)
     table_id: TablesEntity
 
-    @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game)
+    @OneToMany(() => StatusEntity, (statusEntity) => statusEntity.game, { cascade: true })
     status: StatusEntity[]
 
-    @OneToMany(() => TeamsEntity, (teamsEntity) => teamsEntity.game)
+    @OneToMany(() => TeamsEntity, (teamsEntity) => teamsEntity.game, { cascade: true })
     teams: TeamsEntity[]
 }

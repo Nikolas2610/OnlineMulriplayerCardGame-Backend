@@ -50,10 +50,14 @@ export class AuthService {
         const message = await this.emailConfirmationEmail.sendVerificationLink(email, username);
         // If Mail has not send delete user and send server error
         if (message === 'email server error') {
+            console.log("ERROR on email");
+            
             // TODO: Error when add relation with hand_Start_cards and deck
             // this.usersRepository.delete(registerUser);
             throw new HttpException({ status: HttpStatus.INTERNAL_SERVER_ERROR, error: 'Internal Server Error' }, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+        console.log("Email send");
+        
         // Delete password to the return object
         delete registerUser.password;
         return registerUser;
@@ -183,7 +187,11 @@ export class AuthService {
             user.role = Role.GUEST;
             return await this.usersRepository.save(user);
         } catch (error) {
-            throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Something went wrong' }, HttpStatus.BAD_REQUEST);
+            if (error.code === 'ER_DUP_ENTRY') {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: `The nickname you entered, ${guest.username}, is already in use by another user. Please choose a different nickname and try again.` }, HttpStatus.BAD_REQUEST);
+            } else {
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Something went wrong' }, HttpStatus.BAD_REQUEST);
+            }
         }
     }
 }
