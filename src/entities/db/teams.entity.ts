@@ -16,7 +16,7 @@ export class TeamsEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.teams)
+    @ManyToOne(() => GamesEntity, (gamesEntity) => gamesEntity.teams, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'game_id' })
     game: GamesEntity
 

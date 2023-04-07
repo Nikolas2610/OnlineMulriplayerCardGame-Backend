@@ -129,6 +129,8 @@ export class GameService {
             await this.deleteRelations(game);
             return await this.gameRepository.delete(game.id);
         } catch (error) {
+            console.log(error);
+            
             if (error?.code === 'ER_ROW_IS_REFERENCED_2') {
                 throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Game has child rows in the tables table and cannot be deleted.' }, HttpStatus.BAD_REQUEST);
             }
