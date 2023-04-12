@@ -1,7 +1,8 @@
 # compiled output
 /dist
 /node_modules
-/uploads
+# Remove uploads folder
+# /uploads
 .env.development
 .env.production
 # Logs
