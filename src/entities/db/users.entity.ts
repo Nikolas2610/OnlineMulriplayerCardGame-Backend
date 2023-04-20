@@ -4,7 +4,6 @@ import { TablesDecksEntity } from "src/entities/db/table_decks.entity";
 import { TablesEntity } from "src/entities/db/tables.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 import { Role } from "../../auth/models/role.enum";
-import { RankEntity } from "src/entities/db/ranks.entity";
 import { TableUsersEntity } from "src/entities/db/table_users.entity";
 import { CardsEntity } from "./cards.entity";
 
@@ -54,9 +53,6 @@ export class UsersEntity {
 
     @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
     table_users_id: TableUsersEntity
-
-    @OneToMany(() => RankEntity, (rankEntity) => rankEntity.user_id)
-    ranks: RankEntity
 
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_master)
     tables_game_master: TablesEntity

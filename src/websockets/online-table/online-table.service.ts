@@ -22,6 +22,9 @@ import { TableDeckType } from 'src/table/models/table-deck-type.enum';
 import * as bcrypt from 'bcrypt';
 import { HandStartCardsRuleType } from 'src/game/models/relation/hand-start-cards/HandStartCardsRuleType.enum';
 import { DeckType } from 'src/deck/services/models/DeckType.enum';
+import { StoreRankRow } from './dto/StoreRankRow.dto';
+import { RankEntity } from 'src/entities/db/ranks.entity';
+import { RankType } from 'src/rank/types/rank-type.enum';
 
 @Injectable()
 export class OnlineTableService {
@@ -43,6 +46,8 @@ export class OnlineTableService {
     private readonly decksRepository: Repository<DecksEntity>,
     @InjectRepository(HandStartCardsEntity)
     private readonly handStartCardsRepository: Repository<HandStartCardsEntity>,
+    @InjectRepository(RankEntity)
+    private readonly rankRepository: Repository<RankEntity>,
   ) { }
 
   async createTable(userId: number, table: CreateTable) {
@@ -469,9 +474,10 @@ export class OnlineTableService {
 
   async leaveGame(table: TablesEntity) {
     try {
-      const tableDB = await this.tablesRepository.findOne({ where: { id: new EqualOperator(table.id) }, relations: ['table_decks', 'table_users', 'table_decks.table_cards'] })
+      const tableDB = await this.tablesRepository.findOne({ where: { id: new EqualOperator(table.id) }, relations: ['table_decks', 'table_users', 'table_decks.table_cards', 'ranks'] })
 
       await this.eraseDecksAndCards(table);
+      await this.eraseTableRanks(tableDB);
 
       await Promise.all(tableDB.table_users.map(async (user) => {
         await this.tableUsersRepository.delete(user.id);
@@ -504,6 +510,16 @@ export class OnlineTableService {
     }
   }
 
+  async eraseTableRanks(table: TablesEntity) {
+    try {
+      await Promise.all(table.ranks.map(async rank => {
+        await this.rankRepository.delete(rank.id);
+      }))
+    } catch (error) {
+      return error;
+    }
+  }
+
   async updateCard(card: TablesCardsEntity) {
     try {
       return await this.tableCardsRepository.save(card);
@@ -522,7 +538,11 @@ export class OnlineTableService {
 
   async updateTableGameStatus(table: TablesEntity, status: TableStatus) {
     try {
-      table.status = status
+      table.status = status;
+      if (status === TableStatus.WAITING) {
+        const tableDB = await this.tablesRepository.findOne({ where: { id: new EqualOperator(table.id) }, relations: ['ranks'] })
+        this.eraseTableRanks(tableDB);
+      }
       return await this.tablesRepository.save(table);
     } catch (error) {
       return error
@@ -552,6 +572,85 @@ export class OnlineTableService {
       });
       return await this.shuffleCards(tableDeck.table_cards, [tableDeckId]);
     } catch (error) {
+      return error;
+    }
+  }
+
+  async updateRankTable(rankRow: StoreRankRow[], tableId: number) {
+    try {
+      const rankEntities: RankEntity[] = [];
+
+      const tableDB = await this.tablesRepository.findOne({ where: { id: tableId } });
+
+      const rankPromises = rankRow.map(async (rankData) => {
+        const tableUserDB = await this.tableUsersRepository.findOne({ where: { id: rankData.table_user } });
+        const rank = new RankEntity();
+        rank.table = tableDB;
+        rank.type = rankData.type;
+        rank.title = rankData.title;
+        rank.points = rankData.points;
+        rank.row = rankData.row;
+        rank.table_user = tableUserDB;
+        return rank;
+      });
+
+      const resolvedRanks = await Promise.all(rankPromises);
+      rankEntities.push(...resolvedRanks);
+
+      return this.rankRepository.save(rankEntities);
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async getRankTable(tableId: number) {
+    try {
+      const ranks = await this.rankRepository.find({
+        where: { table: new EqualOperator(tableId) },
+        relations: ['table_user'],
+        order: { row: 'ASC', type: 'ASC' }
+      });
+
+      const ranksByRow = [];
+      let currentRow = -1;
+
+      ranks.forEach(rank => {
+        if (rank.row !== currentRow) {
+          currentRow = rank.row;
+          ranksByRow.push([]);
+        }
+        ranksByRow[ranksByRow.length - 1].push(rank);
+      });
+
+      return ranksByRow;
+    } catch (error) {
+      return error;
+    }
+  }
+
+  async updateRankRow(ranks: RankEntity[]) {
+    try {
+      return await this.rankRepository.save(ranks);
+    } catch (error) {
+      return error
+    }
+  }
+
+  async deleteRankRow(row: number, tableId: number) {
+    try {
+      const ranksDB = await this.rankRepository.find({ where: { table: new EqualOperator(tableId), row } });
+
+      // const ranksPromises = ranksDB.map(async (rank) => {
+      //   return await this.tableUsersRepository.delete(rank.id);
+      // });
+
+      const response = await Promise.all(ranksDB.map(rank => {
+        return this.rankRepository.delete(rank.id);
+      }));
+
+      return await Promise.all(response);
+    } catch (error) {
+      console.log(error);
       return error;
     }
   }
