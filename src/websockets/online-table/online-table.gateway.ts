@@ -14,6 +14,8 @@ import { TablesEntity } from 'src/entities/db/tables.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 import { TableStatus } from 'src/table/models/table-status.enum';
 import { Message } from './dto/Message.dto';
+import { StoreRankRow } from './dto/StoreRankRow.dto';
+import { RankEntity } from 'src/entities/db/ranks.entity';
 
 
 @WebSocketGateway({
@@ -44,7 +46,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
 
     if (response) {
       // Update table online players
-      const tableGame = await this.onlineTableService.loadTableGame(response.table.id);
+      const tableGame = await this.onlineTableService.loadTableGame(response.table?.id);
       // Update players to table
       this.server.emit('getTableUsers', tableGame);
     }
@@ -187,7 +189,16 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     // Remove previous cards if exists
     const response = await this.onlineTableService.eraseDecksAndCards(table);
-    // TODO: fix table status response
+
+    // Return the errors
+    if (response.error) {
+      return response
+    }
+
+    // Update table status 
+    table.table_decks = [];
+    table.status = TableStatus.FINISH;
+    
     this.server.to(room).emit('getStartGameDetails', table, []);
 
     return { message: 'success', status: 200 }
@@ -356,6 +367,68 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     const response = { ...data, created_at: new Date() }
     this.server.to(data.room).emit('getSendMessage', response);
+    return { message: 'success', status: 200 };
+  }
+
+  @SubscribeMessage('storeRankRow')
+  async updateRankTable(
+    @MessageBody('room') room: string,
+    @MessageBody('table_id') tableId: number,
+    @MessageBody('row') row: number,
+    @MessageBody('data') data: StoreRankRow[]
+  ) {
+    // Write the rank data
+    const response = await this.onlineTableService.updateRankTable(data, tableId);
+    // Return the error
+    if (response.error) {
+      return response
+    }
+    // Emit event to the users of the room 
+    this.server.to(room).emit('getUpdateRankRow', response, row);
+    // Return success message
+    return { message: 'success', status: 200 };
+  }
+
+  @SubscribeMessage('getRankTable')
+  async getRankTable(
+    @MessageBody('table_id') table_id: number
+  ) {
+    return await this.onlineTableService.getRankTable(table_id);
+  }
+
+  @SubscribeMessage('updateRankRow')
+  async updateRankRow(
+    @MessageBody('room') room: string,
+    @MessageBody('row') row: number,
+    @MessageBody('data') data: RankEntity[]
+  ) {
+    const response = await this.onlineTableService.updateRankRow(data);
+    // Return the error
+    if (response.error) {
+      return response
+    }
+    // Emit event to the users of the room 
+    this.server.to(room).emit('getUpdateRankRow', response, row);
+
+    return { message: 'success', status: 200 };
+  }
+
+  @SubscribeMessage('deleteRankRow')
+  async deleteRankRow(
+    @MessageBody('room') room: string,
+    @MessageBody('row') row: number,
+    @MessageBody('table_id') table_id: number
+  ) {
+    const response = await this.onlineTableService.deleteRankRow(row, table_id);
+    console.log('\x1b[31m%s\x1b[0m', 'Response');
+    console.log(response);
+    
+    // Return the error
+    if (response.error) {
+      return response
+    }
+    // Emit event to the users of the room 
+    this.server.to(room).emit('getUpdateRankRow', null, row);
     return { message: 'success', status: 200 };
   }
 }

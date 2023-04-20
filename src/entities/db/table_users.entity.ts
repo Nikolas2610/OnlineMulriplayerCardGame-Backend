@@ -1,11 +1,12 @@
 import { UsersEntity } from "src/entities/db/users.entity";
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, OneToOne, PrimaryGeneratedColumn, UpdateDateColumn } from "typeorm";
 import { RolesEntity } from "./roles.entity";
 import { StatusEntity } from "./status.entity";
 import { TablesEntity } from "./tables.entity";
 import { TablesCardsEntity } from "./table_cards.entity";
 import { TablesDecksEntity } from "./table_decks.entity";
 import { TeamsEntity } from "./teams.entity";
+import { RankEntity } from "./ranks.entity";
 
 @Entity('table_users')
 export class TableUsersEntity {
@@ -50,4 +51,7 @@ export class TableUsersEntity {
 
     @OneToOne(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.table_user, { cascade: true })
     table_deck: TablesDecksEntity
+
+    @OneToMany(() => RankEntity, (randEntity) => randEntity.table_user)
+    rank: RankEntity
 }
