@@ -15,6 +15,7 @@ import { TableUsersEntity } from 'src/entities/db/table_users.entity';
 import { TablesDecksEntity } from 'src/entities/db/table_decks.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 import { DeckType } from 'src/deck/services/models/DeckType.enum';
+import { SocketStatus } from 'src/websockets/types/SocketStatus.enum';
 
 @Injectable()
 export class AdminService {
@@ -222,8 +223,16 @@ export class AdminService {
         await this.tableDecksRepository.delete(deck.id);
       }
 
-      // Delete users
-      const userPromises = users.map(user => this.tableUsersRepository.delete(user.id));
+      // Update users
+      const userPromises = users.map(user => {
+        user.table = null;
+        user.role = null;
+        user.status = null;
+        user.team = null;
+        user.turn = null;
+        user.socket_status = SocketStatus.ONLINE
+        this.tableUsersRepository.save(user)
+      });
       await Promise.all(userPromises);
 
       return { success: true };
