@@ -46,7 +46,7 @@ export class TablesEntity {
     @OneToMany(() => RankEntity, (rankEntity) => rankEntity.table)
     ranks: RankEntity[]
 
-    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table)
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.table, { onDelete: 'CASCADE' })
     table_users: TableUsersEntity[]
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables_game_master)

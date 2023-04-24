@@ -16,6 +16,7 @@ import { TableStatus } from 'src/table/models/table-status.enum';
 import { Message } from './dto/Message.dto';
 import { StoreRankRow } from './dto/StoreRankRow.dto';
 import { RankEntity } from 'src/entities/db/ranks.entity';
+import { OnlineTableServerService } from './online-table.server.service';
 
 
 @WebSocketGateway({
@@ -27,7 +28,10 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   @WebSocketServer()
   server: Server;
 
-  constructor(private readonly onlineTableService: OnlineTableService) { }
+  constructor(
+    private readonly onlineTableService: OnlineTableService,
+    private readonly serverService: OnlineTableServerService
+  ) { }
 
   // ? For debug
   afterInit() {
@@ -47,9 +51,43 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     if (response) {
       // Update table online players
       const tableGame = await this.onlineTableService.loadTableGame(response.table?.id);
+
       // Update players to table
       this.server.emit('getTableUsers', tableGame);
+
+      // Update count online users
+      this.serverService.emitCountUsers(this.server);
     }
+  }
+
+  @SubscribeMessage('setOnlineSocketUser')
+  async setOnlineSocketUser(
+    @ConnectedSocket() client: Socket,
+    @MessageBody('user_id') userId: number,
+  ) {
+    const response = await this.onlineTableService.setOnlineSocketUser(userId, client.id, this.server, client);
+    // Check for errors
+    if (response.error) {
+      this.server.to(client.id).emit('error', response.error);
+      return response;
+    }
+
+    // Update count online users
+    this.serverService.emitCountUsers(this.server);
+
+    return response;
+  }
+
+  @SubscribeMessage('setOfflineSocketUser')
+  async setOfflineSocketUser(
+    @MessageBody('user_id') userId: number,
+  ) {
+    const response = await this.onlineTableService.setOfflineSocketUser(userId);
+
+    // Update count online users
+    this.serverService.emitCountUsers(this.server);
+
+    return response;
   }
 
   @SubscribeMessage('createOnlineTable')
@@ -82,20 +120,20 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @ConnectedSocket() client: Socket,
     @MessageBody() data: JoinTable,
   ) {
-    // Get user
-    const user = await this.onlineTableService.getUserById(data.userId);
     // Get response
-    const response = await this.onlineTableService.joinTable(data, user, client.id);
+    const response = await this.onlineTableService.joinTable(data, client, this.server);
+
     // Check for errors
     if (response.error) {
       this.server.to(client.id).emit('error', response.error);
       return response;
     }
-    // Add client to socket room
-    client.join(data.publicUrl);
     // Load game settings and update players to table
     const tableGame = await this.onlineTableService.loadTableGame(data.tableId);
     this.server.emit('getTableUsers', tableGame);
+
+    // Update count online users
+    this.serverService.emitCountUsers(this.server);
 
     return response;
   }
@@ -106,19 +144,27 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody() data: JoinTable,
   ) {
     const response = await this.onlineTableService.leaveTable(data.userId, data.tableId);
+
     // Leave user from the socket room 
     client.leave(data.publicUrl);
+
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(data.tableId);
+
     // Update players to table
     this.server.emit('getTableUsers', tableGame);
+
+    // Update count online users
+    this.serverService.emitCountUsers(this.server);
 
     return response;
   }
 
   @SubscribeMessage('findAllOnlineTable')
   async findAll() {
-    return await this.onlineTableService.findAll();
+    const tables = await this.onlineTableService.findAll();
+    const countUsers = await this.serverService.getOnlineUsers();
+    return { tables, countUsers };
   }
 
   @SubscribeMessage('setTurnTableUsers')
@@ -198,7 +244,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     // Update table status 
     table.table_decks = [];
     table.status = TableStatus.FINISH;
-    
+
     this.server.to(room).emit('getStartGameDetails', table, []);
 
     return { message: 'success', status: 200 }
@@ -222,6 +268,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
 
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(table.id);
+
     // Update players to table
     this.server.emit('getTableUsers', tableGame);
   }
@@ -420,9 +467,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('table_id') table_id: number
   ) {
     const response = await this.onlineTableService.deleteRankRow(row, table_id);
-    console.log('\x1b[31m%s\x1b[0m', 'Response');
-    console.log(response);
-    
+
     // Return the error
     if (response.error) {
       return response
