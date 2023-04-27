@@ -19,9 +19,6 @@ export class GamesEntity {
     description: string;
 
     @Column()
-    min_players: number;
-
-    @Column()
     max_players: number;
 
     @Column({ default: false })
@@ -32,9 +29,6 @@ export class GamesEntity {
 
     @Column({ default: false })
     extra_teams: boolean;
-
-    @Column({ default: false })
-    rank: boolean;
 
     @Column({ default: false })
     private: boolean;

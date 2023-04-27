@@ -51,7 +51,7 @@ export class UsersEntity {
     @OneToMany(() => TablesDecksEntity, (tablesDecksEntity) => tablesDecksEntity.user)
     table_decks: TablesDecksEntity
 
-    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user)
+    @OneToMany(() => TableUsersEntity, (tableUsersEntity) => tableUsersEntity.user, { cascade: true })
     table_users_id: TableUsersEntity
 
     @OneToMany(() => TablesEntity, (tablesEntity) => tablesEntity.game_master)

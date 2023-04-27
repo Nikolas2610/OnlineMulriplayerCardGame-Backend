@@ -11,13 +11,17 @@ import { TablesEntity } from 'src/entities/db/tables.entity';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { AdminService } from './admin.service';
 import { User } from './dto/user.dto';
+import { GameService } from 'src/game/game.service';
 
 
 @Controller('admin')
 @Roles(Role.ADMIN)
 @UseGuards(JwtGuard, RolesGuard)
 export class AdminController {
-  constructor(private readonly adminService: AdminService) { }
+  constructor(
+    private readonly adminService: AdminService, 
+    private readonly gameService: GameService 
+    ) { }
 
   @Get('dashboard')
   getDashboardDetails(): Promise<{ tables: number, games: number, decks: number, cards: number }> {
@@ -67,6 +71,13 @@ export class AdminController {
   @Get('games')
   findAllGames() {
     return this.adminService.findAllGames();
+  }
+
+  @Delete('games')
+  deleteGame(
+    @Body("game_id") gameId: number
+  ) {
+    return this.gameService.deleteGame(gameId);
   }
 
   @Get('tables')

@@ -77,28 +77,16 @@ export class UserService {
       });
   }
 
-  async editGame(user: User, game: Game): Promise<UpdateResult> {
-    const query = await this.userOwnerOfGame(user, game.id);
-    if (!query) {
-      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Game not exists with this user' }, HttpStatus.BAD_REQUEST);
-    }
-    return await this.gamesRepository.update({ id: game.id }, game);
-  }
-
-  async deleteGame(user: User, gameId: number): Promise<DeleteResult> {
-    const game = await this.userOwnerOfGame(user, gameId);
-    if (!game) {
-      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Game not exists with this user' }, HttpStatus.BAD_REQUEST);
-    }
-    return await this.gameService.deleteGame(gameId);
-  }
-
   async userOwnerOfGame(user: User, game_id: number): Promise<GamesEntity> {
-    return this.gamesRepository.findOne(
-      {
-        where: { id: game_id, creator: new EqualOperator(user.id) },
-        relations: ['creator']
-      });
+    try {
+      return await this.gamesRepository.findOne(
+        {
+          where: { id: game_id, creator: new EqualOperator(user.id) },
+          relations: ['creator']
+        });
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: error.message }, HttpStatus.BAD_REQUEST);
+    }
   }
 
   async getAllDecks(user: User): Promise<DecksEntity[]> {
@@ -114,7 +102,16 @@ export class UserService {
     const games = await this.gamesRepository.find(
       {
         where: { creator: new EqualOperator(user.id) },
-        relations: ['roles', 'hand_start_cards', 'hand_start_cards.role', 'hand_start_cards.deck', 'hand_start_cards.toDeck', 'teams', 'status', 'deck']
+        relations: [
+          'roles',
+          'hand_start_cards',
+          'hand_start_cards.role',
+          'hand_start_cards.deck',
+          'hand_start_cards.toDeck',
+          'teams',
+          'status',
+          'deck'
+        ]
       }
     )
     return games;

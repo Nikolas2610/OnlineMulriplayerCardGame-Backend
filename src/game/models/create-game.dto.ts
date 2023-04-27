@@ -37,19 +37,9 @@ export class CreateGame {
     @IsNotEmpty()
     max_players: number;
 
-    @Min(0)
-    @Max(10)
-    @IsNumber()
-    @IsNotEmpty()
-    min_players: number;
-
     @IsBoolean()
     @IsNotEmpty()
     private: boolean;
-
-    @IsBoolean()
-    @IsNotEmpty()
-    rank: boolean;
 
     @IsBoolean()
     @IsNotEmpty()

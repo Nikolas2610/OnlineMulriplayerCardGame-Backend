@@ -63,7 +63,6 @@ export class AdminService {
 
   async updateUserDetails(updateAdminDto: User): Promise<UpdateResult> {
     const { id, username, email, role, email_confirmed } = updateAdminDto;
-    // TODO: check the email confirm type
     return await this.usersRepository.update(id, { username, email, role, email_confirmed });
   }
 

@@ -1,4 +1,4 @@
-import { Controller, Get, Body, Patch, Request, Delete } from '@nestjs/common';
+import { Controller, Get, Body, Patch, Request, Delete, HttpException, HttpStatus } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UseGuards } from '@nestjs/common/decorators/core/use-guards.decorator';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
@@ -11,12 +11,16 @@ import { TablesEntity } from 'src/entities/db/tables.entity';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, UpdateResult } from 'typeorm';
 import { Put } from '@nestjs/common/decorators';
+import { GameService } from 'src/game/game.service';
 
 
 @Controller('user')
 @UseGuards(JwtGuard, RefreshToken)
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(
+    private readonly userService: UserService,
+    private readonly gameService: GameService
+  ) { }
 
   @Get('dashboard')
   getDashboardDetails(@Request() req: any): Promise<{ tables: number, games: number, decks: number, cards: number }> {
@@ -55,20 +59,20 @@ export class UserController {
     return this.userService.getAllGames(req.user);
   }
 
-  @Patch('edit/game')
-  editGame(
+  @Delete('games')
+  async deleteGame(
     @Request() req: any,
-    @Body() game: Game
-  ): Promise<UpdateResult> {
-    return this.userService.editGame(req.user, game);
-  }
-
-  @Delete('delete/game')
-  deleteGame(
-    @Request() req: any,
-    @Body('game_id') game_id: number
+    @Body('game_id') gameId: number
   ): Promise<DeleteResult> {
-    return this.userService.deleteGame(req.user, game_id);
+    try {
+      const gameDB = await this.userService.userOwnerOfGame(req.user, gameId);
+      if (gameDB?.id) {
+        return this.gameService.deleteGame(gameId);
+      }
+    } catch (error) {
+      throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: "You are not the creator of the game" }, HttpStatus.BAD_REQUEST);
+    }
+
   }
 
   @Get('tables')

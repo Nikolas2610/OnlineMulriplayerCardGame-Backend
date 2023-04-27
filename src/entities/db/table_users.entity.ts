@@ -20,7 +20,7 @@ export class TableUsersEntity {
     @Column({ default: false })
     playing: boolean;
 
-    @Column()
+    @Column({ nullable: true })
     socket_id: string;
 
     @Column({ type: 'enum', enum: SocketStatus, default: SocketStatus.ONLINE })
@@ -32,7 +32,7 @@ export class TableUsersEntity {
     @UpdateDateColumn({ type: "timestamp", default: () => "CURRENT_TIMESTAMP(6)", onUpdate: "CURRENT_TIMESTAMP(6)" })
     updated_at: Date;
 
-    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_users_id, { cascade: true })
+    @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.table_users_id, { onDelete: 'CASCADE' })
     @JoinColumn({ name: 'user_id' })
     user: UsersEntity
 

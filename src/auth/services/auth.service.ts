@@ -13,7 +13,6 @@ import { UsersEntity } from '../../entities/db/users.entity';
 import { User } from '../models/user.interface';
 import { v4 } from 'uuid';
 import * as crypto from 'crypto';
-import * as jwt from 'jsonwebtoken';
 import { UserRegisterDto } from '../dto/user-register.dto';
 import { GuestRegister } from '../dto/register-guest.dto';
 import { Role } from '../models/role.enum';
