@@ -129,10 +129,8 @@ export class GameService {
             await this.deleteRelations(game);
             return await this.gameRepository.delete(game.id);
         } catch (error) {
-            console.log(error);
-            
             if (error?.code === 'ER_ROW_IS_REFERENCED_2') {
-                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'Game has child rows in the tables table and cannot be deleted.' }, HttpStatus.BAD_REQUEST);
+                throw new HttpException({ status: HttpStatus.BAD_REQUEST, message: 'This game is in used from a table' }, HttpStatus.BAD_REQUEST);
             }
             throw error;
         }
@@ -235,14 +233,12 @@ export class GameService {
         const gameDB = new GamesEntity();
         gameDB.name = game.name;
         gameDB.description = game.description;
-        gameDB.min_players = game.min_players;
         gameDB.max_players = game.max_players;
         gameDB.grid_cols = game.grid_cols;
         gameDB.grid_rows = game.grid_rows;
         gameDB.extra_roles = game.extra_roles;
         gameDB.extra_teams = game.extra_teams;
         gameDB.status_player = game.status_player;
-        gameDB.rank = game.rank;
         gameDB.private = game.private;
         return gameDB;
     }

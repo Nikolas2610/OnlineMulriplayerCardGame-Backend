@@ -44,14 +44,12 @@ export class GameSeeder {
                 const game = new GamesEntity();
                 game.name = faker.internet.userName();
                 game.description = faker.lorem.paragraph();
-                game.min_players = faker.datatype.number(10);
                 game.max_players = faker.datatype.number({
-                    min: game.min_players,
+                    min: 2,
                     max: 10
                 });
                 game.extra_roles = faker.datatype.boolean();
                 game.status_player = faker.datatype.boolean();
-                game.rank = faker.datatype.boolean();
                 game.extra_teams = faker.datatype.boolean();
                 game.grid_cols = faker.datatype.number(5);
                 game.grid_rows = faker.datatype.number(5);

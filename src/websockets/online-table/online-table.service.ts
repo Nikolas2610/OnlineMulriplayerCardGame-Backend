@@ -55,12 +55,20 @@ export class OnlineTableService {
 
   async setOnlineSocketUser(userId: number, socketId: string, server: Server, client: Socket) {
     try {
+      // Remove guest socket credentials
+      const guestTableUserDB = await this.tableUsersRepository.findOne({ where: { socket_id: client.id } });
+      if (guestTableUserDB) {
+        guestTableUserDB.socket_id = null;
+        guestTableUserDB.socket_status = SocketStatus.OFFLINE;
+        await this.tableUsersRepository.save(guestTableUserDB);
+      }
+
       // Get table user
       const tableUserDB = await this.tableUsersRepository.findOne({ where: { user: new EqualOperator(userId) }, relations: ['table'] });
 
       // If exists set the user online and return it  
       if (tableUserDB) {
-        tableUserDB.socket_id = socketId;
+        tableUserDB.socket_id = client.id;
 
         // load the the table data for the disconnected user
         if (tableUserDB.socket_status === SocketStatus.DISCONNECT) {
@@ -73,14 +81,6 @@ export class OnlineTableService {
         }
 
         return await this.tableUsersRepository.save(tableUserDB);
-      }
-
-      // Remove guest socket credentials
-      const guestTableUserDB = await this.tableUsersRepository.findOne({ where: { socket_id: socketId } });
-      if (guestTableUserDB) {
-        guestTableUserDB.socket_id = null;
-        guestTableUserDB.socket_status = SocketStatus.OFFLINE;
-        await this.tableUsersRepository.save(guestTableUserDB);
       }
 
       // If user not exits add the user as online
@@ -179,15 +179,44 @@ export class OnlineTableService {
   }
 
   async findAll() {
-    return await this.tablesRepository.find(
+    const tables = await this.tablesRepository.find(
       {
-        where: [{ status: TableStatus.WAITING }, { status: TableStatus.PLAYING }],
-        relations: ['game', 'creator', 'table_users', 'game_master', 'game.deck', 'game.deck.cards'],
+        where: [
+          { status: TableStatus.WAITING },
+          { status: TableStatus.PLAYING },
+          { status: TableStatus.PLAYER_LEAVE },
+          { status: TableStatus.PLAYER_DISCONNECTED },
+        ],
+        relations: [
+          'game',
+          'creator',
+          'table_users',
+          'game_master',
+          'game.deck',
+          'game.deck.cards',
+        ],
         order: {
-          created_at: 'DESC'
-        }
+          created_at: 'DESC',
+        },
       }
-    )
+    );
+
+    // Custom sort function to prioritize 'WAITING' and 'PLAYING' statuses
+    tables.sort((a, b) => {
+      if (a.status === TableStatus.WAITING && b.status !== TableStatus.WAITING) {
+        return -1;
+      } else if (a.status !== TableStatus.WAITING && b.status === TableStatus.WAITING) {
+        return 1;
+      } else if (a.status === TableStatus.PLAYING && b.status !== TableStatus.PLAYING) {
+        return -1;
+      } else if (a.status !== TableStatus.PLAYING && b.status === TableStatus.PLAYING) {
+        return 1;
+      } else {
+        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return tables;
   }
 
   async joinTable(data: JoinTable, client: Socket, server: Server) {
@@ -195,8 +224,14 @@ export class OnlineTableService {
       const tableUserDB = await this.tableUsersRepository.findOne({ where: { socket_id: client.id } });
       const tableDB = await this.tablesRepository.findOne({
         where: { id: new EqualOperator(data.tableId) },
-        relations: ['table_users']
+        relations: ['table_users', 'game']
       })
+
+      // Check if the table is full
+      if (tableDB.table_users?.length >= tableDB.game?.max_players) {
+        return { error: 'The table is full' };
+      }
+
       if (tableUserDB) {
         // Client join to room
         client.join(data.publicUrl);
@@ -596,8 +631,8 @@ export class OnlineTableService {
         user.turn = null;
         await this.tableUsersRepository.save(user);
       }));
-      // TODO: Set to finish after develop
-      tableDB.status = TableStatus.WAITING;
+
+      tableDB.status = TableStatus.FINISH;
       tableDB.table_users = [];
       await this.tablesRepository.save(tableDB);
 

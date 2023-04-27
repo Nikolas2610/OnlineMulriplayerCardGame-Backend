@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString } from "class-validator";
 import { Role } from "src/auth/models/role.enum";
 
 export class User {
@@ -9,13 +9,10 @@ export class User {
     @IsString()
     username: string;
 
-    @IsNotEmpty()
-    @IsEmail()
     email: string;
 
     @IsNotEmpty()
     email_confirmed: boolean;
 
-    @IsNotEmpty()
     role: Role
 }
