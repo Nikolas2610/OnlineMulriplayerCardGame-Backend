@@ -34,7 +34,7 @@ export class OnlineTableService {
     @InjectRepository(UsersEntity)
     private readonly userRepository: Repository<UsersEntity>,
     @InjectRepository(TablesEntity)
-    private readonly tablesRepository: Repository<TablesEntity>,
+    protected readonly tablesRepository: Repository<TablesEntity>,
     @InjectRepository(UsersEntity)
     private readonly usersRepository: Repository<UsersEntity>,
     @InjectRepository(GamesEntity)
@@ -221,7 +221,7 @@ export class OnlineTableService {
 
   async joinTable(data: JoinTable, client: Socket, server: Server) {
     try {
-      const tableUserDB = await this.tableUsersRepository.findOne({ where: { socket_id: client.id } });
+      const tableUserDB = await this.tableUsersRepository.findOne({ where: { socket_id: client.id }, relations: ['table'] });
       const tableDB = await this.tablesRepository.findOne({
         where: { id: new EqualOperator(data.tableId) },
         relations: ['table_users', 'game']
@@ -230,6 +230,15 @@ export class OnlineTableService {
       // Check if the table is full
       if (tableDB.table_users?.length >= tableDB.game?.max_players) {
         return { error: 'The table is full' };
+      }
+
+      // Catch to join only a leaver
+      if ((tableDB.status === TableStatus.PLAYER_DISCONNECTED || tableDB.status === TableStatus.PLAYER_LEAVE) && tableUserDB.table?.id !== tableDB.id) {
+        return { error: 'The table is accepting only the leavers' };
+      }
+
+      if (tableDB.status !== TableStatus.WAITING && tableDB.status !== TableStatus.PLAYER_DISCONNECTED && tableDB.status !== TableStatus.PLAYER_LEAVE) {
+        return { error: 'The table is no longer waiting for disconnected or leaving players.' };
       }
 
       if (tableUserDB) {
@@ -359,8 +368,12 @@ export class OnlineTableService {
         },
         relations: ['game', 'creator', 'table_users', 'game_master', 'game.deck', 'game.deck.cards', 'table_users.user', 'table_users.role', 'table_decks', 'table_decks.user', 'table_decks.deck', 'table_decks.table', 'table_decks.table_user', 'table_decks.table_user.user', 'table_decks.table_user.role', 'table_users.team', 'table_users.status', 'game.hand_start_cards', 'game.roles', 'game.teams', 'game.status'],
       })
+
       table.table_users = table.table_users.filter(user => user.socket_status === SocketStatus.ROOM);
+
       if (table) {
+        // Sort users by the turn order
+        table.table_users.sort((a, b) => a.turn - b.turn);
         return table;
       }
       throw new WsException("Cant't find table with these credentials");
@@ -615,7 +628,7 @@ export class OnlineTableService {
     }
   }
 
-  async leaveGame(table: TablesEntity) {
+  async exitTable(table: TablesEntity) {
     try {
       const tableDB = await this.tablesRepository.findOne({ where: { id: new EqualOperator(table.id) }, relations: ['table_decks', 'table_users', 'table_decks.table_cards', 'ranks', 'table_users.table'] })
 
@@ -629,10 +642,17 @@ export class OnlineTableService {
         user.status = null;
         user.table = null;
         user.turn = null;
+        user.playing = false;
         await this.tableUsersRepository.save(user);
       }));
 
-      tableDB.status = TableStatus.FINISH;
+      // Not delete the tables on development environment
+      if (process.env.NODE_ENV === 'development') {
+        tableDB.status = TableStatus.WAITING;
+      } else {
+        tableDB.status = TableStatus.FINISH;
+      }
+
       tableDB.table_users = [];
       await this.tablesRepository.save(tableDB);
 
