@@ -1,15 +1,10 @@
 import { Controller, Get, UseGuards, Request, Post, Body, UploadedFile, FileTypeValidator, MaxFileSizeValidator, ParseFilePipe, UseInterceptors, HttpStatus, HttpException, Patch, Delete } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { IsNotEmpty, IsOptional, ValidateNested } from 'class-validator';
-import { createWriteStream } from 'fs';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
 import { JwtGuard } from 'src/auth/guards/jwt.guard';
 import { RefreshToken } from 'src/auth/guards/refresh-token.guard';
 import { CardsEntity } from 'src/entities/db/cards.entity';
 import { CreateCardDto } from '../dto/CreateCard.dto';
 import { CardService } from '../services/card.service';
-import * as fs from 'fs';
 import { EditCardDto } from '../dto/EditCard.dto';
 
 @Controller('card')
@@ -33,7 +28,7 @@ export class CardController {
         @UploadedFile(
             new ParseFilePipe({
                 validators: [
-                    new FileTypeValidator({ fileType: '.(png|jpeg|jpg|svg)' }),
+                    new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
                     new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
                 ],
             }),
@@ -59,7 +54,7 @@ export class CardController {
         @UploadedFile(
             new ParseFilePipe({
                 validators: [
-                    new FileTypeValidator({ fileType: '.(png|jpeg|jpg|svg)' }),
+                    new FileTypeValidator({ fileType: '.(png|jpeg|jpg)' }),
                     new MaxFileSizeValidator({ maxSize: 1024 * 1024 * 4 }),
                 ],
             }),
