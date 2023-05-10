@@ -22,13 +22,7 @@ export class GamesEntity {
     max_players: number;
 
     @Column({ default: false })
-    extra_roles: boolean;
-
-    @Column({ default: false })
-    status_player: boolean;
-
-    @Column({ default: false })
-    extra_teams: boolean;
+    auto_turn: boolean;
 
     @Column({ default: false })
     private: boolean;

@@ -18,7 +18,7 @@ export class OnlineTableServerService extends OnlineTableService {
   async emitUpdateTableToLobby(server: Server, tableId: number) {
     try {
       const table = await this.findOneTable(tableId);
-      console.log(table);
+      table.table_users.sort((a: TableUsersEntity, b: TableUsersEntity) => a.turn - b.turn);
       server.emit('getUpdateTable', table);
     } catch (error) {
       return error;
