@@ -236,9 +236,7 @@ export class GameService {
         gameDB.max_players = game.max_players;
         gameDB.grid_cols = game.grid_cols;
         gameDB.grid_rows = game.grid_rows;
-        gameDB.extra_roles = game.extra_roles;
-        gameDB.extra_teams = game.extra_teams;
-        gameDB.status_player = game.status_player;
+        gameDB.auto_turn = game.auto_turn;
         gameDB.private = game.private;
         return gameDB;
     }

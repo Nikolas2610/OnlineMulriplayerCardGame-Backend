@@ -11,14 +11,6 @@ export class CreateGame {
     @IsString()
     description: string | null;
 
-    @IsBoolean()
-    @IsNotEmpty()
-    extra_roles: boolean;
-
-    @IsBoolean()
-    @IsNotEmpty()
-    extra_teams: boolean;
-
     @Min(0)
     @Max(10)
     @IsNumber()
@@ -43,5 +35,5 @@ export class CreateGame {
 
     @IsBoolean()
     @IsNotEmpty()
-    status_player: boolean;
+    auto_turn: boolean;
 }

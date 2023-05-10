@@ -369,8 +369,6 @@ export class OnlineTableService {
         relations: ['game', 'creator', 'table_users', 'game_master', 'game.deck', 'game.deck.cards', 'table_users.user', 'table_users.role', 'table_decks', 'table_decks.user', 'table_decks.deck', 'table_decks.table', 'table_decks.table_user', 'table_decks.table_user.user', 'table_decks.table_user.role', 'table_users.team', 'table_users.status', 'game.hand_start_cards', 'game.roles', 'game.teams', 'game.status'],
       })
 
-      table.table_users = table.table_users.filter(user => user.socket_status === SocketStatus.ROOM);
-
       if (table) {
         // Sort users by the turn order
         table.table_users.sort((a, b) => a.turn - b.turn);
@@ -477,6 +475,9 @@ export class OnlineTableService {
         }
         tableDeck.type = type;
         tableDeck.table = tableDB;
+        
+        // Sort table users by turn argument
+        table.table_users.sort((a, b) => a.turn - b.turn);
         return await this.tableDecksRepository.save(tableDeck);
       });
       const tableDecks = await Promise.all(createTableDecksPromises);
@@ -572,10 +573,10 @@ export class OnlineTableService {
                   card.hidden = rule.hidden;
                   addCards++;
                   // Print the cards in a row in the player deck
-                  width = width + 50;
+                  width = width + 65;
                   if (width >= 800) {
                     width = 0;
-                    height = height + 75;
+                    height = height + 100;
                   }
                 }
                 if (addCards >= countCards) {
@@ -608,10 +609,10 @@ export class OnlineTableService {
               if (toTableDeck.type === TableDeckType.TABLE) {
                 card.position_x = height;
                 card.position_y = width;
-                width = width + 50;
+                width = width + 65;
                 if (width >= 800) {
                   width = 0;
-                  height = height + 75;
+                  height = height + 100;
                 }
               }
             }

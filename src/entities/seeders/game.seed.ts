@@ -48,9 +48,7 @@ export class GameSeeder {
                     min: 2,
                     max: 10
                 });
-                game.extra_roles = faker.datatype.boolean();
-                game.status_player = faker.datatype.boolean();
-                game.extra_teams = faker.datatype.boolean();
+                game.auto_turn = faker.datatype.boolean();
                 game.grid_cols = faker.datatype.number(5);
                 game.grid_rows = faker.datatype.number(5);
                 game.private = faker.datatype.boolean();
@@ -86,10 +84,8 @@ export class GameSeeder {
     }
 
     async addStatus(game: GamesEntity) {
-        if (game.status_player) {
-            for (let index = 0; index < 2; index++) {
-                this.addStat(faker.name.firstName(), game);
-            }
+        for (let index = 0; index < 2; index++) {
+            this.addStat(faker.name.firstName(), game);
         }
     }
 
@@ -106,10 +102,8 @@ export class GameSeeder {
     }
 
     async addTeams(game: GamesEntity) {
-        if (game.extra_teams) {
-            for (let index = 0; index < 2; index++) {
-                this.addTeam(faker.name.firstName(), game);
-            }
+        for (let index = 0; index < 2; index++) {
+            this.addTeam(faker.name.firstName(), game);
         }
     }
 
