@@ -15,6 +15,7 @@ export class UserSeeder {
 
     async fillUsersTable(users: number) {
         await this.addAdministrator();
+        await this.addStandardUsers();
         await this.addUsers(users);
     }
 
@@ -28,7 +29,23 @@ export class UserSeeder {
             admin.role = Role.ADMIN;
             await this.usersRepository.save(admin);
         } catch (error) {
+            console.log(error);
+        }
+    }
 
+    async addStandardUsers() {
+        try {
+            for (let i = 1; i < 9; i++) {
+                const player = new UsersEntity();
+                player.username = 'Player' + i;
+                player.email = `player${i}@omcg.com`;
+                player.password = await hashPassword('CardGame-0');
+                player.email_confirmed = true;
+                player.role = Role.USER;
+                await this.usersRepository.save(player);
+            }
+        } catch (error) {
+            console.log(error);
         }
     }
 

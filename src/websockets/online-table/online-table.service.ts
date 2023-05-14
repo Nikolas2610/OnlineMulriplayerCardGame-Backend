@@ -85,7 +85,7 @@ export class OnlineTableService {
       }
 
       const user = await this.userRepository.findOne({ where: { id: userId } });
-      
+
       if (user) {
         // If user not exits add the user as online
         const tableUser = new TableUsersEntity();
@@ -355,9 +355,8 @@ export class OnlineTableService {
       if (table) {
         return table;
       }
-      throw new WsException("Cant't find table with these credentials");
     } catch (error) {
-      throw new WsException("Cant't find table with these credentials");
+      return error;
     }
   }
 
@@ -375,9 +374,8 @@ export class OnlineTableService {
         table.table_users.sort((a, b) => a.turn - b.turn);
         return table;
       }
-      throw new WsException("Cant't find table with these credentials");
     } catch (error) {
-      throw new WsException("Cant't find table with these credentials");
+      return { error: "Cant't find table with these credentials" };
     }
   }
 
