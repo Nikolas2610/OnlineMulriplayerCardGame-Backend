@@ -10,6 +10,7 @@ import { TeamsEntity } from "../db/teams.entity";
 import { StatusEntity } from "../db/status.entity";
 import { HandStartCardsEntity } from "../db/hand_start_cards.entity";
 import { DeckType } from "src/deck/services/models/DeckType.enum";
+import { TableDeckType } from "src/table/models/table-deck-type.enum";
 
 export class GameSeeder {
     constructor(
@@ -61,6 +62,7 @@ export class GameSeeder {
                 uniqueNumbers.forEach(num => game.deck.push(decks[num]));
                 await this.gamesRepository.save(game);
                 await this.addRoles(game);
+                await this.addExtraDecks(game);
                 await this.addStatus(game);
                 await this.addTeams(game);
                 await this.addStarterCardsRules(game);
@@ -119,14 +121,30 @@ export class GameSeeder {
     }
 
     async addRoles(game: GamesEntity) {
-        await this.addRole(GameStandardRoles.TABLE, game);
-        // TODO: after complete add "game.extra_roles"
-        if (false) {
-            for (let index = 0; index < 2; index++) {
-                await this.addRole(faker.name.firstName(), game);
-            }
-        } else {
-            await this.addRole(GameStandardRoles.PLAYER, game);
+        await this.addRole(GameStandardRoles.PLAYER, game);
+    }
+
+    async addExtraDecks(game: GamesEntity) {
+        try {
+            const tableDeck = new DecksEntity();
+            tableDeck.type = DeckType.EXTRA_DECK;
+            tableDeck.cards = [];
+            tableDeck.games = [];
+            tableDeck.games.push(game);
+            tableDeck.name = TableDeckType.TABLE;
+            tableDeck.creator = game.creator;
+            await this.decksRepository.save(tableDeck);
+
+            const junkDeck = new DecksEntity();
+            junkDeck.type = DeckType.EXTRA_DECK;
+            junkDeck.cards = [];
+            junkDeck.games = [];
+            junkDeck.games.push(game);
+            junkDeck.name = TableDeckType.JUNK;
+            junkDeck.creator = game.creator;
+            await this.decksRepository.save(junkDeck);
+        } catch (error) {
+            console.log(error);
         }
     }
 
@@ -134,8 +152,6 @@ export class GameSeeder {
         try {
             const role = new RolesEntity();
             role.name = roleName;
-            // role.max_players = faker.datatype.number(3);
-            // role.description = faker.lorem.sentence();
             role.game = game;
             await this.rolesRepository.save(role);
         } catch (error) {
