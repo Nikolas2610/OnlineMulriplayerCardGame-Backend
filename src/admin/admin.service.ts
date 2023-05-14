@@ -16,6 +16,7 @@ import { TablesDecksEntity } from 'src/entities/db/table_decks.entity';
 import { TablesCardsEntity } from 'src/entities/db/table_cards.entity';
 import { DeckType } from 'src/deck/services/models/DeckType.enum';
 import { SocketStatus } from 'src/websockets/types/SocketStatus.enum';
+import { hashPassword } from 'src/utils/helper';
 
 @Injectable()
 export class AdminService {
@@ -62,8 +63,29 @@ export class AdminService {
   }
 
   async updateUserDetails(updateAdminDto: User): Promise<UpdateResult> {
-    const { id, username, email, role, email_confirmed } = updateAdminDto;
-    return await this.usersRepository.update(id, { username, email, role, email_confirmed });
+    try {
+      const { id, username, email, role, email_confirmed } = updateAdminDto;
+
+      return await this.usersRepository.update(id, { username, email, role, email_confirmed });
+    } catch (error) {
+      if (error.sqlMessage.includes("Duplicate entry")) {
+        if (error.sqlMessage.includes("users.IDX_fe0bb3f6520ee0469504521e71")) {
+          throw new HttpException(
+            { message: 'Username already exists.', status: HttpStatus.CONFLICT },
+            HttpStatus.CONFLICT,
+          );
+        } else if (error.sqlMessage.includes("users.IDX_97672ac88f789774dd47f7c8be")) {
+          throw new HttpException(
+            { message: 'Email already exists.', status: HttpStatus.CONFLICT },
+            HttpStatus.CONFLICT,
+          );
+        }
+      }
+      throw new HttpException(
+        { message: error.message, status: HttpStatus.BAD_REQUEST },
+        HttpStatus.BAD_REQUEST,
+      );
+    }
   }
 
   async deleteUser(userId: number): Promise<DeleteResult> {
@@ -128,6 +150,9 @@ export class AdminService {
 
   async updateTable(table: TablesEntity) {
     try {
+      if (table.password) {
+        table.password = await hashPassword(table.password);
+      }
       await this.tablesRepository.save(table);
       return { message: 'Table updated successfully' }
     } catch (error) {

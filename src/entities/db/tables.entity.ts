@@ -50,5 +50,6 @@ export class TablesEntity {
     table_users: TableUsersEntity[]
 
     @ManyToOne(() => UsersEntity, (usersEntity) => usersEntity.tables_game_master)
+    @JoinColumn({ name: 'game_master_id' })
     game_master: UsersEntity
 }

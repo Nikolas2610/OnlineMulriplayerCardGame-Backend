@@ -9,9 +9,6 @@ export class StatusEntity {
 
     @Column({ length: 25 })
     name: string;
-    // ? Remove description 
-    // @Column({ length: 1000 })
-    // description: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })
     created_at: Date;

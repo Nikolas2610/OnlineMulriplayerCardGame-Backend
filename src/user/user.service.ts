@@ -15,6 +15,7 @@ import { GameService } from 'src/game/game.service';
 import { Game } from 'src/game/models/game.interface';
 import { DeleteResult, EqualOperator, Repository, UpdateResult } from 'typeorm';
 import { UserPasswords } from './dto/user-password.dto';
+import { hashPassword } from 'src/utils/helper';
 
 @Injectable()
 export class UserService {
@@ -65,7 +66,7 @@ export class UserService {
     if (!userExists) {
       throw new HttpException({ status: HttpStatus.UNAUTHORIZED, error: 'User does not exist' }, HttpStatus.UNAUTHORIZED);
     }
-    const newPassword = await this.authService.hashPassword(password.new_password);
+    const newPassword = await hashPassword(password.new_password);
     return await this.usersRepository.update(user.id, { password: newPassword });
   }
 
