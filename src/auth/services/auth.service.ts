@@ -16,6 +16,7 @@ import * as crypto from 'crypto';
 import { UserRegisterDto } from '../dto/user-register.dto';
 import { GuestRegister } from '../dto/register-guest.dto';
 import { Role } from '../models/role.enum';
+import { hashPassword } from 'src/utils/helper';
 
 @Injectable()
 export class AuthService {
@@ -29,19 +30,14 @@ export class AuthService {
         private readonly emailService: EmailService
     ) { }
 
-    // Hash the password
-    async hashPassword(password: string): Promise<string> {
-        return bcrypt.hash(password, 12);
-    }
-
     // Register Account
     async registerAccount(user: UserRegisterDto): Promise<User> {
         const { username, email, password } = user;
         // Hash the password
-        const hashPassword = await this.hashPassword(password);
+        const passwordHash = await hashPassword(password);
         // Save to database
         const registerUser = await this.usersRepository.save({
-            username, email, password: hashPassword
+            username, email, password: passwordHash
         }).catch(() => {
             throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Account with this username or email already exists' }, HttpStatus.BAD_REQUEST);
         })
@@ -162,9 +158,9 @@ export class AuthService {
                 throw new HttpException({ status: HttpStatus.BAD_REQUEST, error: 'Authorized problem with token' }, HttpStatus.BAD_REQUEST);
             }
             // Hash the password
-            const hashPassword = await this.hashPassword(password);
+            const passwordHash = await hashPassword(password);
             // Update the password of the user
-            return await this.usersRepository.update({ email: payload.email }, { password: hashPassword })
+            return await this.usersRepository.update({ email: payload.email }, { password: passwordHash })
         } catch (error) {
             // Check If token has expire 
             if (error?.name === 'TokenExpiredError') {

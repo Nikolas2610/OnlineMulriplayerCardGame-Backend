@@ -5,6 +5,7 @@ import { Repository } from "typeorm";
 import { UsersEntity } from "../db/users.entity";
 import { faker } from '@faker-js/faker';
 import * as bcrypt from 'bcrypt';
+import { hashPassword } from "src/utils/helper";
 
 export class UserSeeder {
     constructor(
@@ -22,7 +23,7 @@ export class UserSeeder {
             const admin = new UsersEntity();
             admin.username = 'Admin';
             admin.email = 'admin@omcg.com';
-            admin.password = await this.hashPassword('CardGame-0');
+            admin.password = await hashPassword('CardGame-0');
             admin.email_confirmed = true;
             admin.role = Role.ADMIN;
             await this.usersRepository.save(admin);
@@ -37,12 +38,8 @@ export class UserSeeder {
             user.username = faker.internet.userName();
             user.email = faker.internet.email();
             user.email_confirmed = faker.datatype.boolean();
-            user.password = await this.hashPassword('CardGame-0');
+            user.password = await hashPassword('CardGame-0');
             await this.usersRepository.save(user);
         }
-    }
-
-    async hashPassword(password: string): Promise<string> {
-        return bcrypt.hash(password, 12);
     }
 }

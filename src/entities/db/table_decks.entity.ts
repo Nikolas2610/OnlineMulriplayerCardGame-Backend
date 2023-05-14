@@ -11,7 +11,6 @@ export class TablesDecksEntity {
     @PrimaryGeneratedColumn()
     id: number;
 
-    // ? New enum column
     @Column({ type: 'enum', enum: TableDeckType, default: TableDeckType.USER })
     type: TableDeckType
 

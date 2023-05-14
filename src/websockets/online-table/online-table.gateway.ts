@@ -68,14 +68,11 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const response = await this.onlineTableService.setOnlineSocketUser(userId, client.id, this.server, client);
     // Check for errors
     if (response.error) {
-      this.server.to(client.id).emit('error', response.error);
       return response;
     }
 
     // Update count online users
     this.serverService.emitCountUsers(this.server);
-
-    return response;
   }
 
   @SubscribeMessage('setOfflineSocketUser')
@@ -122,7 +119,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     // Get response
     const response = await this.onlineTableService.joinTable(data, client, this.server);
-
+    
     // Check for errors
     if (response.error) {
       this.server.to(client.id).emit('error', response.error);

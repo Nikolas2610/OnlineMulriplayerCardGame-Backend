@@ -18,7 +18,7 @@ export class RankEntity {
     @Column({ type: 'enum', enum: RankType, default: RankType.POINTS })
     type: RankType
 
-    @Column({ nullable: true })
+    @Column({ nullable: true, length: 25 })
     title: string;
 
     @CreateDateColumn({ type: 'timestamp', default: () => "CURRENT_TIMESTAMP(6)" })

@@ -15,7 +15,7 @@ export class GamesEntity {
     @Column({ length: 25 })
     name: string;
 
-    @Column({ length: 1000 })
+    @Column({ length: 1000, nullable: true })
     description: string;
 
     @Column()

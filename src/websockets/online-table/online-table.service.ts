@@ -26,6 +26,7 @@ import { StoreRankRow } from './dto/StoreRankRow.dto';
 import { RankEntity } from 'src/entities/db/ranks.entity';
 import { SocketStatus } from '../types/SocketStatus.enum';
 import { Server, Socket } from 'socket.io';
+import { hashPassword } from 'src/utils/helper';
 
 @Injectable()
 export class OnlineTableService {
@@ -83,12 +84,17 @@ export class OnlineTableService {
         return await this.tableUsersRepository.save(tableUserDB);
       }
 
-      // If user not exits add the user as online
-      const tableUser = new TableUsersEntity();
-      tableUser.socket_id = socketId;
-      tableUser.user = await this.userRepository.findOne({ where: { id: userId } });
-      tableUser.socket_status = SocketStatus.ONLINE;
-      return await this.tableUsersRepository.save(tableUser);
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      
+      if (user) {
+        // If user not exits add the user as online
+        const tableUser = new TableUsersEntity();
+        tableUser.socket_id = socketId;
+        tableUser.user = await this.userRepository.findOne({ where: { id: userId } });
+        tableUser.socket_status = SocketStatus.ONLINE;
+        return await this.tableUsersRepository.save(tableUser);
+      }
+      return { error: 'User not exists' }
     } catch (error) {
       return error
     }
@@ -141,7 +147,7 @@ export class OnlineTableService {
       tableDB.name = table.name;
       tableDB.creator = tableDB.game_master = userDB;
       tableDB.private = table.private;
-      tableDB.password = table.password ? await this.hashPassword(table.password) : null;
+      tableDB.password = table.password ? await hashPassword(table.password) : null;
       tableDB.game = gameDB;
       tableDB.public_url = uuidv4();
 
@@ -163,11 +169,6 @@ export class OnlineTableService {
     } catch (error) {
       return error
     }
-  }
-
-  // Hash the password
-  async hashPassword(password: string): Promise<string> {
-    return bcrypt.hash(password, 12);
   }
 
   async removeTable(tableId: number): Promise<DeleteResult> {
@@ -237,37 +238,37 @@ export class OnlineTableService {
         return { error: 'The table is accepting only the leavers' };
       }
 
-      if (tableDB.status !== TableStatus.WAITING && tableDB.status !== TableStatus.PLAYER_DISCONNECTED && tableDB.status !== TableStatus.PLAYER_LEAVE) {
-        return { error: 'The table is no longer waiting for disconnected or leaving players.' };
-      }
+      if (tableDB.status === TableStatus.WAITING || tableDB.status === TableStatus.PLAYER_DISCONNECTED || tableDB.status === TableStatus.PLAYER_LEAVE) {
+        if (tableUserDB) {
+          // Client join to room
+          client.join(data.publicUrl);
+          if (tableUserDB.socket_status === SocketStatus.LEAVE) {
+            // Load cards and table for the leaver
+            const cards = await this.getCardsTable(data.tableId);
+            const response = await this.loadTableGame(data.tableId);
+            server.to(client.id).emit('getStartGameDetails', response, cards);
 
-      if (tableUserDB) {
-        // Client join to room
-        client.join(data.publicUrl);
-        if (tableUserDB.socket_status === SocketStatus.LEAVE) {
-          // Load cards and table for the leaver
-          const cards = await this.getCardsTable(data.tableId);
-          const response = await this.loadTableGame(data.tableId);
-          server.to(client.id).emit('getStartGameDetails', response, cards);
-
-          // Check if every player is connected to the table and update table status to playing
-          let startGame = true;
-          tableDB.table_users.forEach(user => {
-            if (user.socket_status !== SocketStatus.ROOM && tableUserDB.id !== user.id) {
-              startGame = false;
+            // Check if every player is connected to the table and update table status to playing
+            let startGame = true;
+            tableDB.table_users.forEach(user => {
+              if (user.socket_status !== SocketStatus.ROOM && tableUserDB.id !== user.id) {
+                startGame = false;
+              }
+            })
+            if (startGame) {
+              await this.updateTableGameStatus(tableDB, TableStatus.PLAYING);
             }
-          })
-          if (startGame) {
-            await this.updateTableGameStatus(tableDB, TableStatus.PLAYING);
           }
+          // Update Socket status
+          tableUserDB.socket_status = SocketStatus.ROOM;
+          // Set turn for the player
+          const countTableUsers = await this.tableUsersRepository.count({ where: { table: new EqualOperator(data.tableId) } });
+          tableUserDB.turn = countTableUsers + 1;
+          tableUserDB.table = await this.tablesRepository.findOne({ where: { id: data.tableId } });
+          return await this.tableUsersRepository.save(tableUserDB);
+        } else {
+          return { error: 'The table is no longer waiting for disconnected or leaving players.' };
         }
-        // Update Socket status
-        tableUserDB.socket_status = SocketStatus.ROOM;
-        // Set turn for the player
-        const countTableUsers = await this.tableUsersRepository.count({ where: { table: new EqualOperator(data.tableId) } });
-        tableUserDB.turn = countTableUsers + 1;
-        tableUserDB.table = await this.tablesRepository.findOne({ where: { id: data.tableId } });
-        return await this.tableUsersRepository.save(tableUserDB);
       }
       return { error: 'User not exists' };
     } catch (error) {
@@ -475,7 +476,7 @@ export class OnlineTableService {
         }
         tableDeck.type = type;
         tableDeck.table = tableDB;
-        
+
         // Sort table users by turn argument
         table.table_users.sort((a, b) => a.turn - b.turn);
         return await this.tableDecksRepository.save(tableDeck);
