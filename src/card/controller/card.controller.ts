@@ -12,14 +12,10 @@ import { EditCardDto } from '../dto/EditCard.dto';
 export class CardController {
     constructor(private readonly cardService: CardService) { }
 
-    @Get('public')
-    async getPublicCards(): Promise<CardsEntity[]> {
-        return await this.cardService.getPublicCards();
-    }
-
-    @Get('user')
-    async getUserCards(@Request() req: any): Promise<CardsEntity[]> {
-        return await this.cardService.getUserCards(req.user);
+    @Get()
+    async getPrivateAndPublicCards(@Request() req: any)
+        : Promise<{ publicCards: CardsEntity[], userCards: CardsEntity[] }> {
+        return await this.cardService.getPrivateAndPublicCards(req.user);
     }
 
     @Post()

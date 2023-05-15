@@ -17,21 +17,26 @@ export class CardService {
         @InjectRepository(CardsEntity)
         private readonly cardsRepository: Repository<CardsEntity>,
         @InjectRepository(UsersEntity)
-        private readonly usersReposiroty: Repository<UsersEntity>,
+        private readonly usersRepository: Repository<UsersEntity>,
     ) {
 
     }
 
-    async getPublicCards(): Promise<CardsEntity[]> {
-        return await this.cardsRepository.find({ where: { private: false } });
-    }
+    async getPrivateAndPublicCards(user: User): Promise<{ publicCards: CardsEntity[], userCards: CardsEntity[] }> {
+        try {
+            const [publicCards, userCards] = await Promise.all([
+                this.cardsRepository.find({ where: { private: false } }),
+                this.cardsRepository.find({ where: { creator: new EqualOperator(user.id) } })
+            ]);
 
-    async getUserCards(user: User): Promise<CardsEntity[]> {
-        return await this.cardsRepository.find({ where: { creator: new EqualOperator(user.id) } });
+            return { publicCards, userCards };
+        } catch (error) {
+            throw new HttpException({ status: HttpStatus.NO_CONTENT, error: 'There are not available cards' }, HttpStatus.NO_CONTENT);
+        }
     }
 
     async saveCard(user: User, card: CreateCardDto, image: Express.Multer.File): Promise<CardsEntity> {
-        const userDB = await this.usersReposiroty.findOne({ where: { id: user.id } });
+        const userDB = await this.usersRepository.findOne({ where: { id: user.id } });
         const imageCard = new CardsEntity();
         imageCard.name = card.name;
         imageCard.image = await this.saveImage(image);
