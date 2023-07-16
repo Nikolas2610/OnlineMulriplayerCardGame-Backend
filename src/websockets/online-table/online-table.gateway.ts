@@ -1,4 +1,14 @@
-import { WebSocketGateway, SubscribeMessage, MessageBody, WebSocketServer, ConnectedSocket, WsException, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit } from '@nestjs/websockets';
+import {
+  WebSocketGateway,
+  SubscribeMessage,
+  MessageBody,
+  WebSocketServer,
+  ConnectedSocket,
+  WsException,
+  OnGatewayConnection,
+  OnGatewayDisconnect,
+  OnGatewayInit,
+} from '@nestjs/websockets';
 import { OnlineTableService } from './online-table.service';
 import { Server, Socket } from 'socket.io';
 import { Request, UseGuards, UseInterceptors } from '@nestjs/common';
@@ -18,39 +28,42 @@ import { StoreRankRow } from './dto/StoreRankRow.dto';
 import { RankEntity } from 'src/entities/db/ranks.entity';
 import { OnlineTableServerService } from './online-table.server.service';
 
-
 @WebSocketGateway({
   cors: {
-    origin: '*'
-  }
+    origin: '*',
+  },
 })
-export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit {
+export class OnlineTableGateway
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
+{
   @WebSocketServer()
   server: Server;
 
   constructor(
     private readonly onlineTableService: OnlineTableService,
-    private readonly serverService: OnlineTableServerService
-  ) { }
+    private readonly serverService: OnlineTableServerService,
+  ) {}
 
   // ? For debug
   afterInit() {
     setInterval(() => {
-      console.log(this.server.sockets.adapter.rooms)
+      console.log(this.server.sockets.adapter.rooms);
     }, 30000);
   }
 
   handleConnection(client: any, ...args: any[]) {
-    console.log('\x1b[32m%s\x1b[0m', "Client connect: " + client.id);
+    console.log('\x1b[32m%s\x1b[0m', 'Client connect: ' + client.id);
   }
 
   async handleDisconnect(client: any) {
-    console.log('\x1b[31m%s\x1b[0m', "Client disconnected: " + client.id);
+    console.log('\x1b[31m%s\x1b[0m', 'Client disconnected: ' + client.id);
     const response = await this.onlineTableService.disconnectUser(client.id);
 
     if (response) {
       // Update table online players
-      const tableGame = await this.onlineTableService.loadTableGame(response.table?.id);
+      const tableGame = await this.onlineTableService.loadTableGame(
+        response.table?.id,
+      );
 
       // Update players to table
       this.server.emit('getTableUsers', tableGame);
@@ -65,7 +78,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @ConnectedSocket() client: Socket,
     @MessageBody('user_id') userId: number,
   ) {
-    const response = await this.onlineTableService.setOnlineSocketUser(userId, client.id, this.server, client);
+    const response = await this.onlineTableService.setOnlineSocketUser(
+      userId,
+      client.id,
+      this.server,
+      client,
+    );
     // Check for errors
     if (response.error) {
       return response;
@@ -76,9 +94,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('setOfflineSocketUser')
-  async setOfflineSocketUser(
-    @MessageBody('user_id') userId: number,
-  ) {
+  async setOfflineSocketUser(@MessageBody('user_id') userId: number) {
     const response = await this.onlineTableService.setOfflineSocketUser(userId);
 
     // Update count online users
@@ -95,14 +111,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const tableDB = await this.onlineTableService.createTable(userId, table);
     if (tableDB) {
       this.server.emit('getOnlineTable', tableDB);
-      return tableDB
+      return tableDB;
     }
   }
 
   @SubscribeMessage('removeTable')
-  async removeTable(
-    @MessageBody('tableId') tableId: number,
-  ) {
+  async removeTable(@MessageBody('tableId') tableId: number) {
     const response = await this.onlineTableService.removeTable(tableId);
 
     if (response.affected === 1) {
@@ -118,8 +132,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody() data: JoinTable,
   ) {
     // Get response
-    const response = await this.onlineTableService.joinTable(data, client, this.server);
-    
+    const response = await this.onlineTableService.joinTable(
+      data,
+      client,
+      this.server,
+    );
+
     // Check for errors
     if (response.error) {
       this.server.to(client.id).emit('error', response.error);
@@ -143,9 +161,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @ConnectedSocket() client: Socket,
     @MessageBody() data: JoinTable,
   ) {
-    const response = await this.onlineTableService.leaveTable(data.userId, data.tableId);
+    const response = await this.onlineTableService.leaveTable(
+      data.userId,
+      data.tableId,
+    );
 
-    // Leave user from the socket room 
+    // Leave user from the socket room
     client.leave(data.publicUrl);
 
     // Update table online players
@@ -174,13 +195,15 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('room') room: string,
   ) {
     // Update turn table users at database
-    const response = await this.onlineTableService.setTurnTableUsers(tableUsers);
+    const response = await this.onlineTableService.setTurnTableUsers(
+      tableUsers,
+    );
     if (response.error) {
-      return response
+      return response;
     }
-    // Update turn table users at room 
+    // Update turn table users at room
     client.broadcast.to(room).emit('getTurnTableUsers', response);
-    return { message: 'success' }
+    return { message: 'success' };
   }
 
   @SubscribeMessage('setStatusTableUser')
@@ -189,13 +212,16 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('table_user') tableUser: TableUsersEntity,
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.setStatusTableUser(tableUser, status);
+    const response = await this.onlineTableService.setStatusTableUser(
+      tableUser,
+      status,
+    );
     if (response.error) {
-      return response
+      return response;
     }
-    // Update status at table users at room 
+    // Update status at table users at room
     this.server.to(room).emit('getUpdateTableUser', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('setTeamTableUser')
@@ -204,13 +230,16 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('table_user') tableUser: TableUsersEntity,
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.setTeamTableUser(tableUser, team);
+    const response = await this.onlineTableService.setTeamTableUser(
+      tableUser,
+      team,
+    );
     if (response.error) {
-      return response
+      return response;
     }
-    // Update team at table users at room 
+    // Update team at table users at room
     this.server.to(room).emit('getUpdateTableUser', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('setRoleTableUser')
@@ -219,13 +248,16 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('table_user') tableUser: TableUsersEntity,
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.setRoleTableUser(tableUser, role);
+    const response = await this.onlineTableService.setRoleTableUser(
+      tableUser,
+      role,
+    );
     if (response.error) {
-      return response
+      return response;
     }
-    // Update role at table users at room 
+    // Update role at table users at room
     this.server.to(room).emit('getUpdateTableUser', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('stopGame')
@@ -238,16 +270,16 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
 
     // Return the errors
     if (response.error) {
-      return response
+      return response;
     }
 
-    // Update table status 
+    // Update table status
     table.table_decks = [];
     table.status = TableStatus.FINISH;
 
     this.server.to(room).emit('getStartGameDetails', table, []);
 
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('exitTable')
@@ -257,7 +289,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     const response = await this.onlineTableService.exitTable(table);
     if (response.error) {
-      return response
+      return response;
     }
     this.server.to(room).emit('exitUsersFromTable');
 
@@ -281,15 +313,15 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   ) {
     // Remove previous cards if exists
     await this.onlineTableService.eraseDecksAndCards(table);
-    // Create Table decks 
+    // Create Table decks
     const response = await this.onlineTableService.startGame(table);
     if (response.error) {
-      return response
+      return response;
     }
     // Create Cards
     const cards = await this.onlineTableService.createTableCards(table);
     if (cards.error) {
-      return response
+      return response;
     }
     // Return the cards
     this.server.to(room).emit('getStartGameDetails', response, cards);
@@ -297,7 +329,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     // Update table status at lobby
     this.serverService.emitUpdateTableToLobby(this.server, table.id);
 
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('updateCard')
@@ -309,12 +341,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const response = await this.onlineTableService.updateCard(card);
 
     if (response.error) {
-      return response
+      return response;
     }
     // Return update card
     client.to(room).except(client.id).emit('getUpdateCard', response);
 
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('setPlayerPlaying')
@@ -322,13 +354,15 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('table_users') table_users: TableUsersEntity[],
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.setPlayerPlaying(table_users);
+    const response = await this.onlineTableService.setPlayerPlaying(
+      table_users,
+    );
     if (response.error) {
-      return response
+      return response;
     }
     // Return update card
     this.server.to(room).emit('getTurnTableUsers', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('updateTableGameStatus')
@@ -337,9 +371,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('status') status: TableStatus,
     @MessageBody('room') room: string,
   ) {
-    const response = await this.onlineTableService.updateTableGameStatus(table, status);
+    const response = await this.onlineTableService.updateTableGameStatus(
+      table,
+      status,
+    );
     if (response.error) {
-      return response
+      return response;
     }
 
     // Return update card
@@ -348,17 +385,15 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     // Update table status at lobby
     this.serverService.emitUpdateTableToLobby(this.server, table.id);
 
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('showAllCards')
-  async showAllCards(
-    @MessageBody('room') room: string,
-  ) {
+  async showAllCards(@MessageBody('room') room: string) {
     const response = true;
     // Return update card
     this.server.to(room).emit('getShowAllCards', response);
-    return { message: 'success', status: 200 }
+    return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('removePlayer')
@@ -366,8 +401,11 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @ConnectedSocket() client: Socket,
     @MessageBody() data: JoinTable,
   ) {
-    const response = await this.onlineTableService.leaveTable(data.userId, data.tableId);
-    // Leave user from the socket room 
+    const response = await this.onlineTableService.leaveTable(
+      data.userId,
+      data.tableId,
+    );
+    // Leave user from the socket room
     this.server.sockets.in(data.publicUrl).socketsLeave(response.socket_id);
     // Update table online players
     const tableGame = await this.onlineTableService.loadTableGame(data.tableId);
@@ -391,9 +429,12 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('room') room: string,
     @MessageBody('next_player') nextPlayer: boolean,
   ) {
-    const response = await this.onlineTableService.setNextPlayer(table_users, nextPlayer);
+    const response = await this.onlineTableService.setNextPlayer(
+      table_users,
+      nextPlayer,
+    );
     if (response.error) {
-      return response
+      return response;
     }
 
     // Return update card
@@ -409,7 +450,7 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     const response = await this.onlineTableService.shuffleDeck(tableDeckId);
 
     if (response.error) {
-      return response
+      return response;
     }
 
     this.server.to(room).emit('getShuffleDeck', response, tableDeckId);
@@ -417,10 +458,8 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   }
 
   @SubscribeMessage('sendMessage')
-  async sendMessage(
-    @MessageBody('data') data: Message,
-  ) {
-    const response = { ...data, created_at: new Date() }
+  async sendMessage(@MessageBody('data') data: Message) {
+    const response = { ...data, created_at: new Date() };
     this.server.to(data.room).emit('getSendMessage', response);
     return { message: 'success', status: 200 };
   }
@@ -430,24 +469,25 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
     @MessageBody('room') room: string,
     @MessageBody('table_id') tableId: number,
     @MessageBody('row') row: number,
-    @MessageBody('data') data: StoreRankRow[]
+    @MessageBody('data') data: StoreRankRow[],
   ) {
     // Write the rank data
-    const response = await this.onlineTableService.updateRankTable(data, tableId);
+    const response = await this.onlineTableService.updateRankTable(
+      data,
+      tableId,
+    );
     // Return the error
     if (response.error) {
-      return response
+      return response;
     }
-    // Emit event to the users of the room 
+    // Emit event to the users of the room
     this.server.to(room).emit('getUpdateRankRow', response, row);
     // Return success message
     return { message: 'success', status: 200 };
   }
 
   @SubscribeMessage('getRankTable')
-  async getRankTable(
-    @MessageBody('table_id') table_id: number
-  ) {
+  async getRankTable(@MessageBody('table_id') table_id: number) {
     return await this.onlineTableService.getRankTable(table_id);
   }
 
@@ -455,14 +495,14 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   async updateRankRow(
     @MessageBody('room') room: string,
     @MessageBody('row') row: number,
-    @MessageBody('data') data: RankEntity[]
+    @MessageBody('data') data: RankEntity[],
   ) {
     const response = await this.onlineTableService.updateRankRow(data);
     // Return the error
     if (response.error) {
-      return response
+      return response;
     }
-    // Emit event to the users of the room 
+    // Emit event to the users of the room
     this.server.to(room).emit('getUpdateRankRow', response, row);
 
     return { message: 'success', status: 200 };
@@ -472,15 +512,15 @@ export class OnlineTableGateway implements OnGatewayConnection, OnGatewayDisconn
   async deleteRankRow(
     @MessageBody('room') room: string,
     @MessageBody('row') row: number,
-    @MessageBody('table_id') table_id: number
+    @MessageBody('table_id') table_id: number,
   ) {
     const response = await this.onlineTableService.deleteRankRow(row, table_id);
 
     // Return the error
     if (response.error) {
-      return response
+      return response;
     }
-    // Emit event to the users of the room 
+    // Emit event to the users of the room
     this.server.to(room).emit('getUpdateRankRow', null, row);
     return { message: 'success', status: 200 };
   }

@@ -337,11 +337,12 @@ export class GameService {
     async getPrivatePublicGames(user: User): Promise<GameReturn[]> {
         try {
             const games = await this.gameRepository
-                .createQueryBuilder('games')
-                .leftJoinAndSelect("games.creator", "user")
-                .where("user.id = :userId", { userId: user.id })
-                .orWhere("games.private = :private", { private: false })
-                .getMany();
+            .createQueryBuilder('games')
+            .leftJoinAndSelect("games.creator", "user")
+            .where("user.id = :userId", { userId: user.id })
+            .orWhere("games.private = :private", { private: false })
+            .orderBy("games.created_at", "DESC") 
+            .getMany();
 
             if (games.length === 0) {
                 throw new HttpException({ status: HttpStatus.NOT_FOUND, message: 'No games found' }, HttpStatus.NOT_FOUND);

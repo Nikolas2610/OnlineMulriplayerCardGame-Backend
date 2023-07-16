@@ -26,7 +26,7 @@ export class EmailConfirmationService {
             expiresIn: this.configService.get('JWT_EMAIL_VERIFICATION_TOKEN_EXPIRATION_TIME')
         })
         // Get the app url and add the token | ***Bug from SENDGRID the url shows but not the href | ***URL decide from the Frontend
-        const url = `${this.configService.get('FRONTEND_URL')}${this.configService.get('EMAIL_CONFIRMATION_URL')}?token=${token}`;
+        const url = `${this.configService.get('FRONTEND_URL')}${this.configService.get('EMAIL_CONFIRMATION_URL')}?token=${token}`; 
         // Subject email
         const subject = `Email Confirmation | ${this.configService.get('APP_NAME')}`;
         // Send email
