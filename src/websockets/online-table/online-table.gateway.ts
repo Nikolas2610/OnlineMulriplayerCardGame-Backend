@@ -524,4 +524,12 @@ export class OnlineTableGateway
     this.server.to(room).emit('getUpdateRankRow', null, row);
     return { message: 'success', status: 200 };
   }
+
+  @SubscribeMessage('setPlayerWinner')
+  async setWinnerPlayer(
+    @MessageBody('username') username: string,
+    @MessageBody('room') room: string,
+  ) {
+    this.server.to(room).emit('showWinnerModal', username);
+  }
 }
